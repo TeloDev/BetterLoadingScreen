@@ -4,6 +4,7 @@ import java.awt.*;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +40,7 @@ import net.minecraftforge.common.config.Configuration;
 
 public class MinecraftDisplayer implements IDisplayer {
     private static String sound;
-    private static String defaultSound = "betterloadingscreen:rhapsodia_orb";//"random.levelup";
+    private static String defaultSound = "betterloadingscreen:rhapsodia_orb";
     private static String fontTexture;
     private static String defaultFontTexture = "textures/font/ascii.png";
     private final boolean preview;
@@ -290,7 +291,7 @@ public class MinecraftDisplayer implements IDisplayer {
         BufferedReader reader = null;
         List<String> lines = new ArrayList<>();
         try {
-            reader = new BufferedReader(new FileReader(file));
+            reader = new BufferedReader((new InputStreamReader(new FileInputStream(file), "UTF-8")));//new BufferedReader(new FileReader(file));
             StringBuffer inputBuffer = new StringBuffer();
             String line;
             while ((line = reader.readLine()) != null) {
@@ -306,7 +307,10 @@ public class MinecraftDisplayer implements IDisplayer {
             reader.close();
 
             FileOutputStream fileOut = new FileOutputStream(file);
-            fileOut.write(inputBuffer.toString().getBytes());
+            PrintStream stream = new PrintStream(fileOut, true, "UTF-8");
+            /*fileOut.write(inputBuffer.toString().getBytes());
+            fileOut.close();*/
+            fileOut.write(inputBuffer.toString().getBytes("UTF-8"));
             fileOut.close();
         }
         catch (FileNotFoundException e) {
@@ -321,8 +325,9 @@ public class MinecraftDisplayer implements IDisplayer {
         if (!useCustomTips) {
             log.info("Not using custom tooltips");
             locale = Minecraft.getMinecraft().getLanguageManager().getCurrentLanguage().getLanguageCode();
-            if (locale.length() > 4) {
-                locale = locale.substring(0, 4);
+            //log.info("Using locale " + locale + "(0)");
+            if (locale.length() > 5) {
+                locale = locale.substring(0, 5);
             }
         } else {
             locale = customTipFilename;
@@ -349,6 +354,7 @@ public class MinecraftDisplayer implements IDisplayer {
             log.info("tips dir exists");
         }
         log.info("Current locale: "+locale);
+        //log.info("Using locale " + locale + "(1)");
         File dest = new File("./config/Betterloadingscreen/tips/" + locale + ".txt");
         log.info("dest set");
         OutputStream outStream = new FileOutputStream(dest);
@@ -362,19 +368,23 @@ public class MinecraftDisplayer implements IDisplayer {
         if (!useCustomTips) {
             log.info("Not using custom tooltips");
             locale = Minecraft.getMinecraft().getLanguageManager().getCurrentLanguage().getLanguageCode();
-            if (locale.length() > 4) {
-                locale = locale.substring(0, 4);
+            log.info("Locale is: " + locale);
+            if (locale.length() > 5) {
+                log.info("locale before trimming: " + locale);
+                locale = locale.substring(0, 5);
             }
         } else {
             locale = customTipFilename;
             log.info("Using custom tooltips, name: " + locale);
         }
         //System.out.println("Language is: "+locale);
+        //log.info("Using locale " + locale + "(2)");
         File tipsCheck = new File("./config/Betterloadingscreen/tips/" + locale + ".txt");
         if (tipsCheck.exists()) {
             log.info("Tips file exists");
             try {
                 //System.out.println("hmm3");
+                //log.info("Using locale " + locale + "(3)");
                 randomTips = readTipsFile("./config/Betterloadingscreen/tips/" + locale + ".txt");
                 Random rand = new Random();
                 tip = randomTips[rand.nextInt(randomTips.length)];
@@ -402,10 +412,12 @@ public class MinecraftDisplayer implements IDisplayer {
         } else {
             //System.out.println("hmm6");
             try {
+                //log.info("Using locale " + locale + "(4)");
                 tipsCheck = new File("./config/Betterloadingscreen/tips/" + locale + ".txt");
                 //System.out.println("Checking if "+locale+".txt exists");
                 if (tipsCheck.exists()) {
                     //System.out.println("File exists");
+                    //log.info("Using locale " + locale + "(5)");
                     randomTips = readTipsFile("./config/Betterloadingscreen/" + locale + ".txt");
                 } else {
                     tipsCheck = new File("./config/Betterloadingscreen/tips/en_US.txt");
@@ -449,8 +461,7 @@ public class MinecraftDisplayer implements IDisplayer {
         String bruh = cfg.getString("bruhissimo", "general", "false", commentBruh);
         System.out.println("Brih is: "+bruh);*/
         
-        String comment4 = "What sound to play when loading is complete. The default sound comes from a Matmos mod expansion" + n +
-        "Rhapsodia, created by Laurent Lozano";
+        String comment4 = "What sound to play when loading is complete. Default is the level up sound (" + defaultSound + ")";
         sound = cfg.getString("sound", "general", defaultSound, comment4);
 
         comment4 = "What font texture to use? Special Cases:"
