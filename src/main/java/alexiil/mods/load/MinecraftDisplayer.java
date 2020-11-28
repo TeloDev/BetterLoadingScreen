@@ -62,7 +62,7 @@ public class MinecraftDisplayer implements IDisplayer {
     private String GTprogressAnimated = "betterloadingscreen:textures/GTMaterialsprogressBars.png";
     private String progressAnimated = "betterloadingscreen:textures/mainProgressBar.png";
     private String title = "betterloadingscreen:textures/transparent.png";
-    private String background = "betterloadingscreen:textures/backgrounds/background1.png";
+    private String background = "betterloadingscreen:textures/backgrounds/01.png";
     private int[] titlePos = new int[] {0, 0, 256, 256, 0, 50, 187, 145};
     /*private int[] GTprogressPos = new int[] {0, 0, 172, 12, 0, -83, 172, 6};
     private int[] GTprogressPosAnimated = new int[] {0, 12, 172, 12, 0, -83, 172, 6};*/
@@ -88,7 +88,7 @@ public class MinecraftDisplayer implements IDisplayer {
     private boolean textShadow = true;
     private String textColor = "ffffff";
     private boolean randomBackgrounds  = true;
-    public static String[] randomBackgroundArray = new String[] {"betterloadingscreen:textures/backgrounds/background1.png", "betterloadingscreen:textures/backgrounds/background2.png"};
+    public static String[] randomBackgroundArray = new String[] {"betterloadingscreen:textures/backgrounds/01.png", "betterloadingscreen:textures/backgrounds/02.png"};
     private boolean blendingEnabled = true;
     private int threadSleepTime = 20;
     private int changeFrequency = 40;
