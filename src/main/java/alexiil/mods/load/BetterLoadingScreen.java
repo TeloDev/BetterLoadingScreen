@@ -15,6 +15,9 @@ import alexiil.mods.load.git.Release;
 
 import com.google.common.eventbus.EventBus;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import cpw.mods.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.FMLModContainer;
@@ -36,6 +39,7 @@ public class BetterLoadingScreen {
     @Instance(Lib.Mod.ID)
     public static BetterLoadingScreen instance;
 
+    public static final Logger log = LogManager.getLogger(Lib.Mod.ID);
     private static List<GitHubUser> contributors = null;
     private static List<Commit> commits = null;
     private static List<Release> releases = null;

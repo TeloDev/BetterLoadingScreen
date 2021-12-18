@@ -1,5 +1,6 @@
 package alexiil.mods.load.coremod;
 
+import alexiil.mods.load.BetterLoadingScreen;
 import net.minecraft.launchwrapper.IClassTransformer;
 
 import org.lwjgl.LWJGLException;
@@ -28,8 +29,8 @@ public class BetterLoadingScreenTransformer implements IClassTransformer, Opcode
                 return transformObjectFactoryClient(basicClass);
         }
         catch (Throwable t) {
-            System.out.println("An issue occoured while transforming " + transformedName);
-            //t.printStackTrace();
+            BetterLoadingScreen.log.error("An issue occurred while transforming " + transformedName);
+            t.printStackTrace();
         }
         return basicClass;
     }
@@ -113,7 +114,7 @@ public class BetterLoadingScreenTransformer implements IClassTransformer, Opcode
 
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
         classNode.accept(cw);
-        System.out.println("Transformed Minecraft");
+        BetterLoadingScreen.log.debug("Transformed Minecraft");
         return cw.toByteArray();
     }
 }

@@ -10,9 +10,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import cpw.mods.fml.client.FMLFileResourcePack;
 import cpw.mods.fml.common.DummyModContainer;
 import cpw.mods.fml.common.ModContainer;
@@ -21,7 +18,6 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.common.config.Configuration;
 
 public class ProgressDisplayer {
-	private static Logger log;
 	private static boolean hasTurnedSplashOff = false;
 	private static boolean forgeSplashWasTrue = false;
     public interface IDisplayer {
@@ -59,16 +55,15 @@ public class ProgressDisplayer {
     }
 
     public static class LoggingDisplayer implements IDisplayer {
-        private Logger log;
 
         @Override
         public void open(Configuration cfg) {
-            log = LogManager.getLogger("betterloadingscreen");
+
         }
 
         @Override
         public void displayProgress(String text, float percent) {
-            log.info(text + " (" + (int) (percent * 100) + "%)");
+            BetterLoadingScreen.log.info(text + " (" + (int) (percent * 100) + "%)");
         }
 
         @Override
@@ -105,13 +100,13 @@ public class ProgressDisplayer {
             resLoaderClass.getField("INSTANCE").set(null, instance);
             Method m = resLoaderClass.getMethod("preInit", FMLPreInitializationEvent.class);
             m.invoke(instance, new Object[] { null });
-            System.out.println("Resource loader loaded early succssessfully :)");
+            BetterLoadingScreen.log.debug("Resource loader loaded early successfully :)");
         }
         catch (ClassNotFoundException ex) {
-            System.out.println("Resource loader not loaded, not initialising early");
+            BetterLoadingScreen.log.warn("Resource loader not loaded, not initialising early");
         }
         catch (Throwable t) {
-            System.out.println("Resource Loader Compat FAILED!");
+            BetterLoadingScreen.log.error("Resource Loader Compat FAILED!");
             t.printStackTrace();
         }
     }
@@ -158,8 +153,8 @@ public class ProgressDisplayer {
 
         if (useMinecraft) {
             String comment =
-                    "Whether or not to use minecraft's display to show the progress. This looks better, but there is a possibilty of not being ";
-            comment += "compatible, so if you do have any strange crash reports or compatability issues, try setting this to false" + n +
+                    "Whether or not to use minecraft's display to show the progress. This looks better, but there is a possibility of not being ";
+            comment += "compatible, so if you do have any strange crash reports or compatibility issues, try setting this to false" + n +
             		"Note: IIRC, setting this to false makes the screen black";
             useMinecraft = cfg.getBoolean("useMinecraft", "general", true, comment);
         }
@@ -177,16 +172,15 @@ public class ProgressDisplayer {
     }
     
     public static boolean turnForgeSplashOff(String file) throws IOException {
-    	log = LogManager.getLogger("betterloadingscreen");
     	boolean hasTurnedOff = false;
     	BufferedReader reader = null;
         try {
             reader = new BufferedReader(new FileReader(file));
             StringBuffer inputBuffer = new StringBuffer();
-            //System.out.println("got the file");
+            //BetterLoadingScreen.log.trace("got the file");
             String line;
             while ((line = reader.readLine()) != null) {
-				//System.out.println(line);
+				//BetterLoadingScreen.log.trace(line);
 				if (line.equals("enabled=true")) {
 					line = "enabled=false";
 					hasTurnedOff = true;
@@ -199,24 +193,23 @@ public class ProgressDisplayer {
             FileOutputStream fileOut = new FileOutputStream(file);
             fileOut.write(inputBuffer.toString().getBytes());
             fileOut.close();
-            log.info("Turned Forge splash screen off in splash.properties");
+            BetterLoadingScreen.log.info("Turned Forge splash screen off in splash.properties");
         }
         catch (FileNotFoundException e) {
-        	log.warn("Error while opening splash.properties");
+        	BetterLoadingScreen.log.error("Error while opening splash.properties");
         }
         return hasTurnedOff;
     }
     
     public static void turnForgeSplashOn(String file) throws IOException {
-    	log = LogManager.getLogger("betterloadingscreen");
     	BufferedReader reader = null;
         try {
             reader = new BufferedReader(new FileReader(file));
             StringBuffer inputBuffer = new StringBuffer();
-            //System.out.println("got the file");
+            //BetterLoadingScreen.log.trace("got the file");
             String line;
             while ((line = reader.readLine()) != null) {
-				//System.out.println(line);
+				//BetterLoadingScreen.log.trace(line);
 				if (line.equals("enabled=false")) {
 					line = "enabled=true";
 				}
@@ -228,10 +221,10 @@ public class ProgressDisplayer {
             FileOutputStream fileOut = new FileOutputStream(file);
             fileOut.write(inputBuffer.toString().getBytes());
             fileOut.close();
-            log.info("Turned Forge splash screen on in splash.properties");
+            BetterLoadingScreen.log.info("Turned Forge splash screen on in splash.properties");
         }
         catch (FileNotFoundException e) {
-        	log.warn("Error while opening splash.properties");
+        	BetterLoadingScreen.log.error("Error while opening splash.properties");
         }
     }
     
@@ -288,9 +281,9 @@ public class ProgressDisplayer {
             fi.set(null, true);
         }
         catch (Throwable t) {
-            System.out.println("Could not override forge's splash screen for some reason...");
-            System.out.println("class = " + cl);
-            System.out.println("field = " + fi);
+            BetterLoadingScreen.log.error("Could not override forge's splash screen for some reason...");
+            BetterLoadingScreen.log.error("class = " + cl);
+            BetterLoadingScreen.log.error("field = " + fi);
             t.printStackTrace();
         }
     }
