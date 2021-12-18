@@ -111,36 +111,7 @@ public class BetterLoadingScreen {
     }
 
     public static void initSiteVersioning() {
-        if (ProgressDisplayer.connectExternally) {
-            String droneSite = "https://drone.io/github.com/AlexIIL/BetterLoadingScreen_1.7/files/VersionInfo/build/libs/version/";
-            contributors = Collections.unmodifiableList(SiteRequester.getContributors(droneSite + "contributors.json"));
-            if (contributors.size() == 0)
-                meta.authorList.add("Could not connect to GitHub to fetch the rest...");
-            for (GitHubUser c : contributors) {
-                if ("AlexIIL".equals(c.login))
-                    continue;
-                meta.authorList.add(c.login);
-            }
 
-            commits = SiteRequester.getCommits(droneSite + "commits.json");
-            Collections.sort(commits, new Comparator<Commit>() {
-                @Override
-                public int compare(Commit c0, Commit c1) {
-                    return c1.commit.committer.date.compareTo(c0.commit.committer.date);
-                }
-            });
-            commits = Collections.unmodifiableList(commits);
-
-            for (Commit c : commits)
-                if (getCommitHash().equals(c.sha))
-                    thisCommit = c;
-            if (thisCommit == null && commits.size() > 0 && getBuildType() == 2) {
-                System.out.println("Didn't find my commit! This is unexpected, consider this a bug!");
-                System.out.println("Commit Hash : \"" + getCommitHash() + "\"");
-            }
-
-            releases = Collections.unmodifiableList(SiteRequester.getReleases(droneSite + "releases.json"));
-        }
     }
 
     public static List<GitHubUser> getContributors() {

@@ -82,7 +82,7 @@ public class ProgressDisplayer {
     private static IDisplayer displayer;
     private static int clientState = -1;
     public static Configuration cfg;
-    public static boolean connectExternally, playSound;
+    public static boolean playSound;
     public static File coreModLocation;
     public static ModContainer modContainer;
 
@@ -167,8 +167,6 @@ public class ProgressDisplayer {
             		"Note: IIRC, setting this to false makes the screen black";
             useMinecraft = cfg.getBoolean("useMinecraft", "general", true, comment);
         }
-
-        connectExternally = cfg.getBoolean("connectExternally", "general", false, "If this is true, it will conect to drone.io to get a changelog." + n + "Note: this repo is down.");
 
         playSound = cfg.getBoolean("playSound", "general", true, "Play a sound after minecraft has finished starting up");
 
