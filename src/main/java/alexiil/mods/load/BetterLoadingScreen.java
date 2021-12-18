@@ -40,7 +40,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-@Mod(modid = Lib.Mod.ID, guiFactory = "alexiil.mods.load.gui.ConfigGuiFactory", acceptableRemoteVersions = "*")
+@Mod(modid = Lib.Mod.ID, version = Lib.Mod.VERSION, name = Lib.Mod.NAME, acceptedMinecraftVersions = "[1.7.10]", guiFactory = "alexiil.mods.load.gui.ConfigGuiFactory", acceptableRemoteVersions = "*")
 public class BetterLoadingScreen {
     @Instance(Lib.Mod.ID)
     public static BetterLoadingScreen instance;
