@@ -13,16 +13,12 @@ import java.lang.reflect.Method;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.gson.Gson;
-
 import cpw.mods.fml.client.FMLFileResourcePack;
-import cpw.mods.fml.client.SplashProgress;
 import cpw.mods.fml.common.DummyModContainer;
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.ModMetadata;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.common.config.Configuration;
-
 
 public class ProgressDisplayer {
 	private static Logger log;
