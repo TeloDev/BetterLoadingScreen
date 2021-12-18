@@ -58,7 +58,7 @@ public class BetterLoadingScreen {
             if (mod instanceof FMLModContainer) {
                 EventBus bus = null;
                 try {
-                    // Its a bit questionable to be changing FML itself, but reflection is better than ASM transforming
+                    // It's a bit questionable to be changing FML itself, but reflection is better than ASM transforming
                     // forge
                     Field f = FMLModContainer.class.getDeclaredField("eventBus");
                     f.setAccessible(true);

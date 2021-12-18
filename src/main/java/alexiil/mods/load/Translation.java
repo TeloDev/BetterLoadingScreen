@@ -108,20 +108,19 @@ public class Translation {
     }
 
     private Translation(BufferedReader loadFrom) throws IOException {
-        BufferedReader reader = loadFrom;
-        try {
+        try (BufferedReader reader = loadFrom) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] splitter = line.split("=");
-                if (splitter.length != 2) {
-                    System.out.println("Found an invalid line (" + line + ")");
-                } else {
-                    translations.put(splitter[0], splitter[1]);
-                    System.out.println("Found a translation " + Arrays.toString(splitter));
+                if (!line.equals("")) {
+                    String[] splitter = line.split("=");
+                    if (splitter.length != 2) {
+                        System.out.println("Found an invalid line (" + line + ")");
+                    } else {
+                        translations.put(splitter[0], splitter[1]);
+                        System.out.println("Found a translation " + Arrays.toString(splitter));
+                    }
                 }
             }
-        } finally {
-            if (reader != null) reader.close();
         }
     }
 
