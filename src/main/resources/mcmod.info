@@ -1,5 +1,4 @@
-[
-{
+[{
   "modid": "${modId}",
   "name": "${modName}",
   "description": "A better loading screen that shows you the status of minecraft's loading time",
@@ -12,5 +11,4 @@
   "logoFile": "assets/betterloadingscreen/textures/logo.png",
   "screenshots": ["assets/betterloadingscreen/textures/screenshot.png"],
   "dependencies": []
-}
-]
+}]

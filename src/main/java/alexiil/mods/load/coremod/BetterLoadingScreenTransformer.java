@@ -66,18 +66,16 @@ public class BetterLoadingScreenTransformer implements IClassTransformer, Opcode
                 break;
             if (m.exceptions.size() == 1 && m.exceptions.get(0).equals(Type.getInternalName(LWJGLException.class))) {
                 for (int i = 0; i < m.instructions.size(); i++) {
-                    if (!hasFoundGL11) {
-                        AbstractInsnNode node = m.instructions.get(i);
-                        if (node instanceof MethodInsnNode) {
-                            MethodInsnNode method = (MethodInsnNode) node;
-                            if (method.owner.equals(Type.getInternalName(GL11.class)) && method.name.equals("glFlush")) {
-                                hasFoundGL11 = true;
-                                // This method throws an LWJGL exception, and calls GL11.glFlush(). This must be
-                                // Minecraft.loadScreen()!
-                                m.instructions.insertBefore(m.instructions.getFirst(), new InsnNode(RETURN));
-                                // just return from the method, as if nothing happened
-                                break;
-                            }
+                    AbstractInsnNode node = m.instructions.get(i);
+                    if (node instanceof MethodInsnNode) {
+                        MethodInsnNode method = (MethodInsnNode) node;
+                        if (method.owner.equals(Type.getInternalName(GL11.class)) && method.name.equals("glFlush")) {
+                            hasFoundGL11 = true;
+                            // This method throws an LWJGL exception, and calls GL11.glFlush(). This must be
+                            // Minecraft.loadScreen()!
+                            m.instructions.insertBefore(m.instructions.getFirst(), new InsnNode(RETURN));
+                            // just return from the method, as if nothing happened
+                            break;
                         }
                     }
                 }
@@ -85,7 +83,7 @@ public class BetterLoadingScreenTransformer implements IClassTransformer, Opcode
             for (int i = 0; i < m.instructions.size(); i++) {
                 /* LiteLoader disabling -NOTE TO ANYONE FROM LITELOADER OR ANYONE ELSE: I am disabling liteloader's
                  * overlay simply because otherwise it switches between liteloader's bar and mine. I can safely assume
-                 * that people won't wont this, and as my progress bar is the entire mod, they can disable this
+                 * that people won't want this, and as my progress bar is the entire mod, they can disable this
                  * behaviour by removing my mod (as all my mod does is just add a loading bar) */
                 AbstractInsnNode node = m.instructions.get(i);
                 if (node instanceof MethodInsnNode) {

@@ -15,6 +15,8 @@ import cpw.mods.fml.common.DummyModContainer;
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.ModMetadata;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraftforge.common.config.Configuration;
 
 public class ProgressDisplayer {
@@ -252,6 +254,7 @@ public class ProgressDisplayer {
         if (isClient() && playSound) {
             new Thread() {
                 @Override
+                @SideOnly(Side.CLIENT)
                 public void run() {
                     try {
                         Thread.sleep(2000);
