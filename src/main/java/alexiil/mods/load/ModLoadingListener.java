@@ -1,19 +1,14 @@
 package alexiil.mods.load;
 
+import com.google.common.eventbus.Subscribe;
+import cpw.mods.fml.common.ModContainer;
+import cpw.mods.fml.common.event.*;
+import cpw.mods.fml.relauncher.FMLLaunchHandler;
+import net.minecraftforge.common.MinecraftForge;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import net.minecraftforge.common.MinecraftForge;
-
-import com.google.common.eventbus.Subscribe;
-
-import cpw.mods.fml.common.ModContainer;
-import cpw.mods.fml.common.event.FMLConstructionEvent;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
-import cpw.mods.fml.common.event.FMLPostInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 public class ModLoadingListener {
     public enum State {
@@ -41,14 +36,14 @@ public class ModLoadingListener {
         public String translate() {
             if (translatedName != null)
                 return translatedName;
-            String failure = name.replaceAll("\\_", " ");
-            String[] split = failure.split(" ");
-            failure = "";
+            StringBuilder failure = new StringBuilder(name.replaceAll("_", " "));
+            String[] split = failure.toString().split(" ");
+            failure = new StringBuilder();
             for (int i = 0; i < split.length; i++) {
-                failure += i == 0 ? "" : " ";
-                failure += split[i].substring(0, 1).toUpperCase().concat(split[i].substring(1));
+                failure.append(i == 0 ? "" : " ");
+                failure.append(split[i].substring(0, 1).toUpperCase().concat(split[i].substring(1)));
             }
-            translatedName = Translation.translate("betterloadingscreen.state." + name, failure);
+            translatedName = Translation.translate("betterloadingscreen.state." + name, failure.toString());
             return translatedName;
         }
     }
@@ -100,12 +95,11 @@ public class ModLoadingListener {
         public float getPercent( ) {
         	float values = 100 / (float) (State.values().length-1);
             float size = listeners.size();
-            float percent = values * index / size;
-            return percent;
+            return values * index / size;
         }
     }
 
-    private static List<ModLoadingListener> listeners = new ArrayList<ModLoadingListener>();
+    private static List<ModLoadingListener> listeners = new ArrayList<>();
     private static ModStage stage = null;
 
     private final ModContainer mod;
@@ -155,6 +149,8 @@ public class ModLoadingListener {
             text = stage.getDisplayText();
             percent = stage.getProgress() / 100F;
         }
-        ProgressDisplayer.displayProgress(text, percent);
+        if(FMLLaunchHandler.side().isClient()) {
+            ProgressDisplayer.displayProgress(text, percent);
+        }
     }
 }

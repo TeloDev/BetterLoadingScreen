@@ -47,7 +47,6 @@ public class BetterLoadingScreen {
     public static ModMetadata meta;
     
     @EventHandler
-    @SideOnly(Side.CLIENT)
     public void construct(FMLConstructionEvent event) throws IOException {
         ModLoadingListener thisListener = null;
         for (ModContainer mod : Loader.instance().getActiveModList()) {
