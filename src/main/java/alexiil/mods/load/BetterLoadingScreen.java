@@ -103,22 +103,8 @@ public class BetterLoadingScreen {
         ProgressDisplayer.close();
     }
 
-    public static String getCommitHash() {
-        return Lib.Mod.COMMIT_HASH;
-    }
-
-    public static int getBuildType() {
-        return Lib.Mod.buildType();
-    }
-
     public static void initSiteVersioning() {
 
-    }
-
-    public static List<GitHubUser> getContributors() {
-        if (contributors == null)
-            initSiteVersioning();
-        return contributors;
     }
 
     public static List<Commit> getCommits() {
