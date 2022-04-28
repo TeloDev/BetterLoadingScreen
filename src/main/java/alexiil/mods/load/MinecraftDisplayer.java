@@ -88,9 +88,8 @@ public class MinecraftDisplayer implements IDisplayer {
     private boolean randomBackgrounds  = true;
     public static String[] randomBackgroundArray = new String[] {"betterloadingscreen:textures/backgrounds/01.png", "betterloadingscreen:textures/backgrounds/02.png"};
     private boolean blendingEnabled = true;
-    private int threadSleepTime = 20;
     private int changeFrequency = 40;
-    private float alphaDecreaseStep = 0.01F;
+    private float blendTimeMillis = 2000;
     private boolean shouldGLClear = false;
     private boolean salt = false;
     private String loadingBarsColor = "fdf900";
@@ -105,9 +104,10 @@ public class MinecraftDisplayer implements IDisplayer {
     public static boolean isRegisteringGTmaterials = false;
     public static boolean isReplacingVanillaMaterials = false;
     public static boolean isRegisteringBartWorks = false;
-    public static boolean blending = false;
-    public static boolean blendingJustSet = false;
-    public static float blendAlpha = 1F;
+    public static volatile boolean blending = false;
+    public static volatile boolean blendingJustSet = false;
+    public static volatile float blendAlpha = 1F;
+    public static volatile long blendStartMillis = 0;
     private static String newBlendImage = "none";
     private static int nonStaticElementsToGo;
 
@@ -524,18 +524,13 @@ public class MinecraftDisplayer implements IDisplayer {
         //Stuff related to blending
         String comment24 = "Whether backgrounds should change randomly during loading. They are taken from the random background list";
         blendingEnabled = cfg.getBoolean("backgroundChanging", "changing background", blendingEnabled, comment24);
-        String comment25 = "Time in milliseconds between each image change (smooth blend)." + n +
-        		"The animation runs on the main thread (because OpenGL bruh moment), so setting this higher than" + n +
-        		"default is not recommended (basically: if image transition is running, your mod is not loading)";
-        threadSleepTime = cfg.getInt("threadSleepTime", "changing background", threadSleepTime, 0, 9000, comment25);
+        String comment25 = "Time in milliseconds between each image change (smooth blend).";
+        blendTimeMillis = cfg.getFloat("blendTimeMilliseconds", "changing background", blendTimeMillis, 0, 30_000, comment25);
         /*
         NOBODY EXPECTS THE SPANISH INQUISITION!
          */
         String comment26 = "How many seconds between background changes";
         changeFrequency = cfg.getInt("changeFrequency", "changing background", changeFrequency, 1, 9000, comment26);
-        String comment27 = "Float from 0 to 1. The amount of alpha that is removed from the original image and added to the image that comes after."+ n +
-        		"Also defined smoothness of animation. Don't set this too low this time or you'll add time to your pack loading. Probably "+String.valueOf(alphaDecreaseStep)+" still is too low.";
-        alphaDecreaseStep = cfg.getFloat("alphaDecreaseStep", "changing background", alphaDecreaseStep, 0, 1, comment27);
         String comment28 = "No, don't touch that!";
         shouldGLClear = cfg.getBoolean("shouldGLClear", "changing background", shouldGLClear, comment28);
         
@@ -624,9 +619,10 @@ public class MinecraftDisplayer implements IDisplayer {
                     @Override
                     public void run() {
                         if (!blending /*&& !isRegisteringBartWorks && !isRegisteringGTmaterials && !isReplacingVanillaMaterials*/) {
-                            alexiil.mods.load.MinecraftDisplayer.blending = true;
-                            alexiil.mods.load.MinecraftDisplayer.blendingJustSet = true;
-                            alexiil.mods.load.MinecraftDisplayer.blendAlpha = 1;
+                            MinecraftDisplayer.blendingJustSet = true;
+                            MinecraftDisplayer.blendAlpha = 1;
+                            MinecraftDisplayer.blendStartMillis = System.currentTimeMillis();
+                            MinecraftDisplayer.blending = true;
                         }
                     }
                 }, changeFrequency, changeFrequency, TimeUnit.SECONDS);
@@ -899,28 +895,26 @@ public class MinecraftDisplayer implements IDisplayer {
             			Random rand = new Random();
             			newBlendImage = randomBackground(render.resourceLocation);//randomBackgroundArray[rand.nextInt(randomBackgroundArray.length)];
             		}
-            		
-            		GL11.glColor4f(render.getRed(), render.getGreen(), render.getBlue(), blendAlpha);//+0.1F);
-            		
-            		blendAlpha -= alphaDecreaseStep;
+
+                    if (blendTimeMillis < 1.f) {
+                        blendAlpha = 0.f;
+                    } else {
+                        blendAlpha = Float.max(0.f, 1.0f - (float) (System.currentTimeMillis() - blendStartMillis) / blendTimeMillis);
+                    }
             		//BetterLoadingScreen.log.trace("blendAlpha: "+blendAlpha);
-            		if (blendAlpha <= 0) {
+            		if (blendAlpha <= 0.f) {
 						blending = false;
 						background = newBlendImage;
 					}
-            		try {
-						Thread.sleep(threadSleepTime);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-            		
+
+                    GL11.glColor4f(render.getRed(), render.getGreen(), render.getBlue(), blendAlpha);
             		ResourceLocation res = new ResourceLocation(render.resourceLocation);
                     textureManager.bindTexture(res);
                     drawRect(startX, startY, PWidth, PHeight, render.texture.x, render.texture.y, render.texture.width, render.texture.height);
                     //drawImageRender(render, text, percent);
                     
                     ImageRender render2 = new ImageRender(newBlendImage, EPosition.TOP_LEFT, EType.STATIC, new Area(0, 0, 256, 256), new Area(0, 0, 256, 256));
-                    GL11.glColor4f(render2.getRed(), render2.getGreen(), render2.getBlue(), 1-blendAlpha-0.05F);//+0.01F);
+                    GL11.glColor4f(render2.getRed(), render2.getGreen(), render2.getBlue(), 1.f - blendAlpha);
                     ResourceLocation res2 = new ResourceLocation(render2.resourceLocation);
                     textureManager.bindTexture(res2);
                     drawRect(startX, startY, PWidth, PHeight, render2.texture.x, render2.texture.y, render2.texture.width, render2.texture.height);
@@ -1082,7 +1076,6 @@ public class MinecraftDisplayer implements IDisplayer {
 
                     //
                     postDisplayScreen();
-                    drawImageRender(render, text, percent);
             		break;
             	} else {
             		if (!newBlendImage.contentEquals("none")) {
