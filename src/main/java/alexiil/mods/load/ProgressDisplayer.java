@@ -1,14 +1,13 @@
 package alexiil.mods.load;
 
 import java.awt.GraphicsEnvironment;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Properties;
 
 import cpw.mods.fml.client.FMLFileResourcePack;
 import cpw.mods.fml.common.DummyModContainer;
@@ -17,7 +16,10 @@ import cpw.mods.fml.common.ModMetadata;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.common.config.Configuration;
+import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.Level;
 
 public class ProgressDisplayer {
 	private static boolean hasTurnedSplashOff = false;
@@ -173,68 +175,48 @@ public class ProgressDisplayer {
         cfg.save();
     }
     
-    public static boolean turnForgeSplashOff(String file) throws IOException {
+    public static boolean setForgeSplashEnabled(boolean enabled) throws IOException {
     	boolean hasTurnedOff = false;
-    	BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new FileReader(file));
-            StringBuffer inputBuffer = new StringBuffer();
-            //BetterLoadingScreen.log.trace("got the file");
-            String line;
-            while ((line = reader.readLine()) != null) {
-				//BetterLoadingScreen.log.trace(line);
-				if (line.equals("enabled=true")) {
-					line = "enabled=false";
-					hasTurnedOff = true;
-				}
-				inputBuffer.append(line);
-				inputBuffer.append('\n');
-            }
-            reader.close();
-            
-            FileOutputStream fileOut = new FileOutputStream(file);
-            fileOut.write(inputBuffer.toString().getBytes());
-            fileOut.close();
-            BetterLoadingScreen.log.info("Turned Forge splash screen off in splash.properties");
+        File configFile = new File(Minecraft.getMinecraft().mcDataDir, "config/splash.properties");
+        FileReader r = null;
+        Properties config = new Properties();
+        try
+        {
+            r = new FileReader(configFile);
+            config.load(r);
         }
-        catch (FileNotFoundException e) {
-        	BetterLoadingScreen.log.error("Error while opening splash.properties");
+        catch(IOException e)
+        {
+            BetterLoadingScreen.log.info("Forge splash screen settings not found, will create a dummy one");
+        }
+        finally
+        {
+            IOUtils.closeQuietly(r);
+        }
+        config.setProperty("enabled", Boolean.toString(enabled));
+        FileWriter w = null;
+        try
+        {
+            w = new FileWriter(configFile);
+            config.store(w, "Splash screen properties");
+            hasTurnedOff = true;
+            BetterLoadingScreen.log.info("Turned Forge splash screen " + (enabled ? "on" : "off") + " in splash.properties");
+        }
+        catch(IOException e)
+        {
+            BetterLoadingScreen.log.log(Level.ERROR, "Could not turn Forge splash screen " + (enabled ? "on" : "off") + " in splash.properties", e);
+        }
+        finally
+        {
+            IOUtils.closeQuietly(w);
         }
         return hasTurnedOff;
     }
     
-    public static void turnForgeSplashOn(String file) throws IOException {
-    	BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new FileReader(file));
-            StringBuffer inputBuffer = new StringBuffer();
-            //BetterLoadingScreen.log.trace("got the file");
-            String line;
-            while ((line = reader.readLine()) != null) {
-				//BetterLoadingScreen.log.trace(line);
-				if (line.equals("enabled=false")) {
-					line = "enabled=true";
-				}
-				inputBuffer.append(line);
-				inputBuffer.append('\n');
-            }
-            reader.close();
-            
-            FileOutputStream fileOut = new FileOutputStream(file);
-            fileOut.write(inputBuffer.toString().getBytes());
-            fileOut.close();
-            BetterLoadingScreen.log.info("Turned Forge splash screen on in splash.properties");
-        }
-        catch (FileNotFoundException e) {
-        	BetterLoadingScreen.log.error("Error while opening splash.properties");
-        }
-    }
-    
     public static void displayProgress(String text, float percent) throws IOException {
     	if (!hasTurnedSplashOff) {
-    		String file = "./config/splash.properties";
 			hasTurnedSplashOff = true;
-    		if (turnForgeSplashOff(file)) {
+    		if (setForgeSplashEnabled(false)) {
     			forgeSplashWasTrue = true;
     		}
 		}
@@ -264,9 +246,8 @@ public class ProgressDisplayer {
                 }
             }.start();
         }
-        String file = "./config/splash.properties";
         if (forgeSplashWasTrue) {
-			turnForgeSplashOn(file);
+			setForgeSplashEnabled(true);
 		}
     }
 
