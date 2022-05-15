@@ -871,8 +871,6 @@ public class MinecraftDisplayer implements IDisplayer {
 			}
             imageCounter++;
         }
-
-        postDisplayScreen();
     }
 
     private FontRenderer fontRenderer(String fontTexture) {
@@ -1094,10 +1092,6 @@ public class MinecraftDisplayer implements IDisplayer {
 
     public ImageRender[] getImageData() {
         return images;
-    }
-
-    private void postDisplayScreen() {
-        mc.func_147120_f();
     }
 
     @Override
