@@ -10,13 +10,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import alexiil.mods.load.json.*;
 
+import cpw.mods.fml.client.SplashProgress;
+import cpw.mods.fml.common.FMLLog;
+import org.apache.logging.log4j.Level;
+import org.lwjgl.LWJGLException;
+import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 
 import alexiil.mods.load.ProgressDisplayer.IDisplayer;
@@ -29,12 +34,20 @@ import net.minecraft.client.audio.SoundEventAccessorComposite;
 import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.client.resources.LanguageManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.config.Configuration;
+import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.SharedDrawable;
+
+import static org.lwjgl.opengl.GL11.GL_ALPHA_TEST;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
+import static org.lwjgl.opengl.GL11.GL_GREATER;
+import static org.lwjgl.opengl.GL11.GL_LEQUAL;
+import static org.lwjgl.opengl.GL11.GL_MODELVIEW;
+import static org.lwjgl.opengl.GL11.GL_PROJECTION;
 
 public class MinecraftDisplayer implements IDisplayer {
     private static String sound;
@@ -117,7 +130,16 @@ public class MinecraftDisplayer implements IDisplayer {
     private ScheduledExecutorService tipExec = null;
     private boolean scheduledBackgroundExecSet = false;
 
-    CountDownLatch countDownLatch = new CountDownLatch(1);
+    private Thread splashRenderThread = null;
+    private boolean splashRenderKillSwitch = false;
+    /**
+     * During the load phase, the main thread still needs to access OpenGL to load textures, etc.
+     * To achieve this, the splash render thread takes over the main context, and the main thread is assigned this shared context.
+     * A context can only be active in one thread at a time, hence this solution (inspired by FML's SplashProgress implementation)
+     */
+    private SharedDrawable loadingDrawable = null;
+    private String currentText = "";
+    private float currentPercent = 0;
 
     private boolean experimental = false;
     
@@ -639,6 +661,84 @@ public class MinecraftDisplayer implements IDisplayer {
 
     @Override
     public void displayProgress(String text, float percent) {
+        currentText = text;
+        currentPercent = percent;
+        if (splashRenderThread == null) {
+            try {
+                loadingDrawable = new SharedDrawable(Display.getDrawable());
+                Display.getDrawable().releaseContext();
+                loadingDrawable.makeCurrent();
+            } catch (LWJGLException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e); // work around checked exceptions
+            }
+            splashRenderThread = new Thread(new Runnable() {
+                /**
+                 * Has to be locked while running Display.update()
+                 */
+                Semaphore fmlMutex;
+
+                @Override
+                public void run() {
+                    try {
+                        Field f = SplashProgress.class.getDeclaredField("mutex");
+                        f.setAccessible(true);
+                        fmlMutex = (Semaphore) f.get(null);
+                        Display.getDrawable().makeCurrent();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        throw new RuntimeException(e);
+                    }
+                    while (!MinecraftDisplayer.this.splashRenderKillSwitch) {
+                        resetGlState();
+                        displayProgressInWorkerThread(currentText, currentPercent);
+
+                        fmlMutex.acquireUninterruptibly();
+                        Display.update();
+                        fmlMutex.release();
+                        Display.sync(60);
+                    }
+                    resetGlState();
+                    try {
+                        Display.getDrawable().releaseContext();
+                    } catch (LWJGLException e) {
+                        e.printStackTrace();
+                        throw new RuntimeException(e);
+                    }
+                }
+
+                private void resetGlState() {
+                    Minecraft mc = Minecraft.getMinecraft();
+                    int w = Display.getWidth();
+                    int h = Display.getHeight();
+                    mc.displayWidth = w;
+                    mc.displayHeight = h;
+                    GL11.glClearColor(0, 0, 0, 1);
+                    GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+                    GL11.glEnable(GL_DEPTH_TEST);
+                    GL11.glDepthFunc(GL_LEQUAL);
+                    GL11.glEnable(GL_ALPHA_TEST);
+                    GL11.glAlphaFunc(GL_GREATER, .1f);
+                    GL11.glViewport(0, 0, w, h);
+                    GL11.glMatrixMode(GL_PROJECTION);
+                    GL11.glLoadIdentity();
+                    GL11.glOrtho(320 - w/2, 320 + w/2, 240 + h/2, 240 - h/2, -1, 1);
+                    GL11.glMatrixMode(GL_MODELVIEW);
+                    GL11.glLoadIdentity();
+                }
+            });
+            splashRenderThread.setName("BLS Splash renderer");
+            splashRenderThread.setUncaughtExceptionHandler((Thread t, Throwable e) -> {
+                FMLLog.log(Level.ERROR, e, "BetterLodingScreen thread exception");
+            });
+            splashRenderThread.start();
+            if (splashRenderThread.getState() == Thread.State.TERMINATED) {
+                throw new IllegalStateException("BetterLoadingScreen splash thread terminated upon start");
+            }
+        }
+    }
+
+    public void displayProgressInWorkerThread(String text, float percent) {
     	if (!salt) {
             /*if (tipsEnabled && ((!isRegisteringBartWorks && !isRegisteringGTmaterials && !isReplacingVanillaMaterials && tipCounter > tipsChangeFrequency) || ((isRegisteringBartWorks || isRegisteringGTmaterials || isReplacingVanillaMaterials) && tipCounter > tipsChangeFrequency*secondBarToolTipMultiplier))) {
                 tipCounter = 0;
@@ -654,7 +754,7 @@ public class MinecraftDisplayer implements IDisplayer {
                 }
 	    		//background
 	    		if (!background.equals("")) {
-	    			images[0] = new ImageRender(background, EPosition.TOP_LEFT, EType.STATIC, new Area(0, 0, 256, 256), new Area(0, 0, 0, 0));
+	    			images[0] = new ImageRender(background, EPosition.TOP_LEFT, EType.STATIC_BLENDED, new Area(0, 0, 256, 256), new Area(0, 0, 0, 0));
 				} else {
                     images[0] = new ImageRender("betterloadingscreen:textures/transparent.png", EPosition.TOP_LEFT, EType.STATIC, new Area(0, 0, 256, 256), new Area(0, 0, 10, 10));
                 }
@@ -701,7 +801,7 @@ public class MinecraftDisplayer implements IDisplayer {
                 }
                 //background
 				if (!background.equals("")) {
-	    			images[0] = new ImageRender(background, EPosition.TOP_LEFT, EType.STATIC, new Area(0, 0, 256, 256), new Area(0, 0, 0, 0));
+	    			images[0] = new ImageRender(background, EPosition.TOP_LEFT, EType.STATIC_BLENDED, new Area(0, 0, 256, 256), new Area(0, 0, 0, 0));
 				} else {
 					images[0] = new ImageRender("betterloadingscreen:textures/transparent.png", EPosition.TOP_LEFT, EType.STATIC, new Area(0, 0, 256, 256), new Area(0, 0, 10, 10));
 				}
@@ -750,6 +850,7 @@ public class MinecraftDisplayer implements IDisplayer {
 		}
         
         for (ImageRender image : images) {
+            // Warning: do not add underline/strikethrough styling to the text, as that can cause Tesselator data races between threads
         	if (salt) {
         		drawImageRender(image, "Minecraft is loading, please wait...", percent);
 			} else if (image != null && !(imageCounter > 4 && (isRegisteringGTmaterials || isReplacingVanillaMaterials || isRegisteringBartWorks) && imageCounter < 9)) {
@@ -769,14 +870,6 @@ public class MinecraftDisplayer implements IDisplayer {
 				drawImageRender(image," Post Initialization: Registering BartWorks materials", lastPercent);
 			}
             imageCounter++;
-        }
-
-        postDisplayScreen();
-
-        if (callAgain) {
-            // For some reason, calling this again makes pre-init render properly. I have no idea why, it just does
-            callAgain = false;
-            displayProgress(text, percent);
         }
     }
 
@@ -884,16 +977,12 @@ public class MinecraftDisplayer implements IDisplayer {
                 }
                 break;
             }
-            case STATIC: {
-            	if (blending) {
-            		preDisplayScreen();
-            		GL11.glClearColor(clearRed, clearGreen, clearBlue, 1);
-            		//GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+            case STATIC:
+            case STATIC_BLENDED: {
+            	if (blending && render.type == EType.STATIC_BLENDED) {
             		if (blendingJustSet) {
             			blendingJustSet = false;
-            		    //BetterLoadingScreen.log.trace("start blend");
-            			Random rand = new Random();
-            			newBlendImage = randomBackground(render.resourceLocation);//randomBackgroundArray[rand.nextInt(randomBackgroundArray.length)];
+            			newBlendImage = randomBackground(render.resourceLocation);
             		}
 
                     if (blendTimeMillis < 1.f) {
@@ -901,7 +990,6 @@ public class MinecraftDisplayer implements IDisplayer {
                     } else {
                         blendAlpha = Float.max(0.f, 1.0f - (float) (System.currentTimeMillis() - blendStartMillis) / blendTimeMillis);
                     }
-            		//BetterLoadingScreen.log.trace("blendAlpha: "+blendAlpha);
             		if (blendAlpha <= 0.f) {
 						blending = false;
 						background = newBlendImage;
@@ -911,178 +999,14 @@ public class MinecraftDisplayer implements IDisplayer {
             		ResourceLocation res = new ResourceLocation(render.resourceLocation);
                     textureManager.bindTexture(res);
                     drawRect(startX, startY, PWidth, PHeight, render.texture.x, render.texture.y, render.texture.width, render.texture.height);
-                    //drawImageRender(render, text, percent);
-                    
-                    ImageRender render2 = new ImageRender(newBlendImage, EPosition.TOP_LEFT, EType.STATIC, new Area(0, 0, 256, 256), new Area(0, 0, 256, 256));
+
+                    ImageRender render2 = new ImageRender(newBlendImage, EPosition.TOP_LEFT, EType.STATIC, new Area(0, 0, 256, 256), new Area(0, 0, 0, 0));
                     GL11.glColor4f(render2.getRed(), render2.getGreen(), render2.getBlue(), 1.f - blendAlpha);
                     ResourceLocation res2 = new ResourceLocation(render2.resourceLocation);
                     textureManager.bindTexture(res2);
                     drawRect(startX, startY, PWidth, PHeight, render2.texture.x, render2.texture.y, render2.texture.width, render2.texture.height);
-                    //drawImageRender(render2, text, percent);
-                    
-                    //Rest of the images
-
-                    //loading bar static
-                    GL11.glColor4f(render.getRed(), render.getGreen(), render.getBlue(), 1F);
-                    ImageRender render3 = new ImageRender(images[4].resourceLocation, images[4].positionType, images[4].type, images[4].texture, images[4].position);
-                    startX = progressPos[0];//render3.transformX(resolution.getScaledWidth());
-                    startY = progressPos[1];//render3.transformY(resolution.getScaledHeight());
-                    ResourceLocation res3 = new ResourceLocation(images[4].resourceLocation);
-                    textureManager.bindTexture(res3);
-                    /*double visibleWidth = PWidth * percent;
-                    double textureWidth = render.texture.width * percent;*/
-                    startX = render3.transformX(resolution.getScaledWidth());
-                    startY = render3.transformY(resolution.getScaledHeight());
-                    PWidth = 0;
-                    PHeight = 0;
-                    if (render3.position != null) {
-                        PWidth = render3.position.width == 0 ? resolution.getScaledWidth() : render3.position.width;
-                        PHeight = render3.position.height == 0 ? resolution.getScaledHeight() : render3.position.height;
-                    }
-                    drawRect(startX, startY,PWidth, PHeight, render3.texture.x, render3.texture.y, render3.texture.width, render3.texture.height);
-                    //loading bar animated
-                    ImageRender render4 = new ImageRender(images[5].resourceLocation, images[5].positionType, images[5].type, images[5].texture, images[5].position);
-
-                    //startX = progressPos[0];//render3.transformX(resolution.getScaledWidth());
-                    //startY = progressPos[1];//render3.transformY(resolution.getScaledHeight());
-                    ResourceLocation res4 = new ResourceLocation(images[5].resourceLocation);
-                    textureManager.bindTexture(res4);
-                    /*double visibleWidth = PWidth * percent;
-                    double textureWidth = render.texture.width * percent;*/
-                    startX = render4.transformX(resolution.getScaledWidth());
-                    startY = render4.transformY(resolution.getScaledHeight());
-                    PWidth = 0;
-                    PHeight = 0;
-                    if (render4.position != null) {
-                        PWidth = render4.position.width == 0 ? resolution.getScaledWidth() : render4.position.width;
-                        PHeight = render4.position.height == 0 ? resolution.getScaledHeight() : render4.position.height;
-                    }
-                    //hmmm test
-                    double visibleWidth;
-                    double textureWidth;
-                    if (isRegisteringGTmaterials || isReplacingVanillaMaterials || isRegisteringBartWorks) {
-                        visibleWidth = PWidth * lastPercent;
-                        textureWidth = render4.texture.width * lastPercent;
-                    } else {
-                        visibleWidth = PWidth * percent;
-                        textureWidth = render4.texture.width * percent;
-                    }
-                    ///
-                    GL11.glColor4f(lbRGB[0], lbRGB[1], lbRGB[2], loadingBarsAlpha);
-                    drawRect(startX, startY, visibleWidth, PHeight, render4.texture.x, render4.texture.y, textureWidth, render4.texture.height);
-                    GL11.glColor4f(1, 1, 1, 1);
-                    //dynamic text
-                    ImageRender render5 = new ImageRender(images[2].resourceLocation, images[2].positionType, images[2].type, images[2].texture, images[2].position);
-                    FontRenderer font = fontRenderer(render5.resourceLocation);
-                    int width;
-                    width = font.getStringWidth(text);
-                    //BetterLoadingScreen.log.trace("width1 is: "+String.valueOf(width));
-                    startX = render5.positionType.transformX(render5.position.x, resolution.getScaledWidth() - width);
-                    startY = render5.positionType.transformY(render5.position.y, resolution.getScaledHeight() - font.FONT_HEIGHT);
-                    if (textShadow) {
-                        font.drawStringWithShadow(text, startX, startY, intColor);
-                    } else {
-                        drawString(font, text, startX, startY, intColor);
-                    }
-                    //dynamic text percentage
-                    ImageRender render6 = new ImageRender(images[3].resourceLocation, images[3].positionType, images[3].type, images[3].texture, images[3].position);
-                    String percentage = (int) (percent * 100) + "%";
-                    width = font.getStringWidth(percentage);
-                    startX = render6.positionType.transformX(render6.position.x, resolution.getScaledWidth() - width);
-                    startY = render6.positionType.transformY(render6.position.y, resolution.getScaledHeight() - font.FONT_HEIGHT);
-                    if (textShadow) {
-                        font.drawStringWithShadow(percentage, startX, startY, /*render.getColour()*/intColor);
-                    } else {
-                        drawString(font, percentage, startX, startY, intColor);
-                    }
-                    ///////////
-                    //GT
-                    if (isRegisteringGTmaterials || isReplacingVanillaMaterials || isRegisteringBartWorks) {
-                        //loading bar static
-                        GL11.glColor4f(render.getRed(), render.getGreen(), render.getBlue(), 1F);
-                        ImageRender render7 = new ImageRender(images[8].resourceLocation, images[8].positionType, images[8].type, images[8].texture, images[8].position);
-                        startX = progressPos[0];//render3.transformX(resolution.getScaledWidth());
-                        startY = progressPos[1];//render3.transformY(resolution.getScaledHeight());
-                        ResourceLocation res7 = new ResourceLocation(images[8].resourceLocation);
-                        textureManager.bindTexture(res3);
-                        startX = render7.transformX(resolution.getScaledWidth());
-                        startY = render7.transformY(resolution.getScaledHeight());
-                        PWidth = 0;
-                        PHeight = 0;
-                        if (render7.position != null) {
-                            PWidth = render7.position.width == 0 ? resolution.getScaledWidth() : render7.position.width;
-                            PHeight = render7.position.height == 0 ? resolution.getScaledHeight() : render7.position.height;
-                        }
-                        drawRect(startX, startY,PWidth, PHeight, render7.texture.x, render7.texture.y, render7.texture.width, render7.texture.height);
-                        //loading bar animated
-                        //GL11.glColor4f(render.getRed(), render.getGreen(), render.getBlue(), 1F);
-                        ImageRender render8 = new ImageRender(images[9].resourceLocation, images[9].positionType, images[9].type, images[9].texture, images[9].position);
-                        ResourceLocation res8 = new ResourceLocation(images[9].resourceLocation);
-                        textureManager.bindTexture(res8);
-                        startX = render8.transformX(resolution.getScaledWidth());
-                        startY = render8.transformY(resolution.getScaledHeight());
-                        PWidth = 0;
-                        PHeight = 0;
-                        if (render4.position != null) {
-                            PWidth = render8.position.width == 0 ? resolution.getScaledWidth() : render8.position.width;
-                            PHeight = render8.position.height == 0 ? resolution.getScaledHeight() : render8.position.height;
-                        }
-                        visibleWidth = PWidth * percent;
-                        textureWidth = render8.texture.width * percent;
-                        GL11.glColor4f(lbRGB[0], lbRGB[1], lbRGB[2], loadingBarsAlpha);
-                        drawRect(startX, startY, visibleWidth, PHeight, render8.texture.x, render8.texture.y, textureWidth, render8.texture.height);
-                        GL11.glColor4f(1, 1, 1, 1);
-                        //dynamic text
-                        ImageRender render9 = new ImageRender(images[6].resourceLocation, images[6].positionType, images[6].type, images[6].texture, images[6].position);
-                        font = fontRenderer(render9.resourceLocation);
-                        width = font.getStringWidth(" Post Initialization: Registering GregTech materials");
-                        startX = render9.positionType.transformX(render9.position.x, resolution.getScaledWidth() - width);
-                        startY = render9.positionType.transformY(render9.position.y, resolution.getScaledHeight() - font.FONT_HEIGHT);
-                        if (textShadow) {
-                            font.drawStringWithShadow(" Post Initialization: Registering GregTech materials", startX, startY, intColor);
-                        } else {
-                            drawString(font, " Post Initialization: Registering GregTech materials", startX, startY, intColor);
-                        }
-                        //dynamic text percentage
-                        ImageRender render10 = new ImageRender(images[7].resourceLocation, images[7].positionType, images[7].type, images[7].texture, images[7].position);
-                        percentage = (int) (percent * 100) + "%";
-                        width = font.getStringWidth(String.valueOf((int)lastPercent*100) + "%");
-                        startX = render10.positionType.transformX(render10.position.x, resolution.getScaledWidth() - width);
-                        startY = render10.positionType.transformY(render10.position.y, resolution.getScaledHeight() - font.FONT_HEIGHT);
-                        if (textShadow) {
-                            //BetterLoadingScreen.log.trace("lastPercent: "+String.valueOf(lastPercent));
-                            font.drawStringWithShadow(String.valueOf((int)(lastPercent*100)) + "%", startX, startY, /*render.getColour()*/intColor);
-                        } else {
-                            drawString(font, String.valueOf((int)(lastPercent*100)) + "%", startX, startY, intColor);
-                        }
-                    }
-                    ///////////
-                    //tips. bruh that is so badly written, pls don't blame me, modding feels like swimming in concrete
-                    if (tipsEnabled) {
-                        ImageRender render11 = null;
-                        render11 = new ImageRender(fontTexture, EPosition.BOTTOM_CENTER, EType.TIPS_TEXT, null, new Area(tipsTextPos[0], tipsTextPos[1], 0, 0), tipsColor, tip, "");
-                        font = fontRenderer(render11.resourceLocation);
-                        width = font.getStringWidth(render11.text);
-                        //BetterLoadingScreen.log.trace("width2 is: "+String.valueOf(width));
-                        int startX1 = render11.positionType.transformX(render11.position.x, resolution.getScaledWidth() - width);
-                        //BetterLoadingScreen.log.trace("startX1 blending: "+startX1);
-                        int startY1 = render11.positionType.transformY(render11.position.y, resolution.getScaledHeight() - font.FONT_HEIGHT);
-                        if (tipsTextShadow) {
-                            font.drawStringWithShadow(render11.text, startX1, startY1, Integer.parseInt(tipsColor, 16));
-                        } else {
-                            drawString(font, render11.text, startX1, startY1, Integer.parseInt(tipsColor, 16));
-                        }
-                    }
-
-                    //
-                    postDisplayScreen();
             		break;
             	} else {
-            		if (!newBlendImage.contentEquals("none")) {
-						
-						render = new ImageRender(newBlendImage, EPosition.TOP_LEFT, EType.STATIC, new Area(0, 0, 256, 256), new Area(0, 0, 256, 256));
-						newBlendImage = "none";
-            		}
             		GL11.glColor4f(render.getRed(), render.getGreen(), render.getBlue(), 1F);
             		ResourceLocation res = new ResourceLocation(render.resourceLocation);
                     textureManager.bindTexture(res);
@@ -1104,13 +1028,17 @@ public class MinecraftDisplayer implements IDisplayer {
 
     public void drawRect(double x, double y, double drawnWidth, double drawnHeight, double u, double v, double uWidth, double vHeight) {
         float f = 1 / 256F;
-        Tessellator tessellator = Tessellator.instance;
-        tessellator.startDrawingQuads();
-        tessellator.addVertexWithUV(x, y + drawnHeight, 0, u * f, (v + vHeight) * f);
-        tessellator.addVertexWithUV(x + drawnWidth, y + drawnHeight, 0, (u + uWidth) * f, (v + vHeight) * f);
-        tessellator.addVertexWithUV(x + drawnWidth, y, 0, (u + uWidth) * f, v * f);
-        tessellator.addVertexWithUV(x, y, 0, u * f, v * f);
-        tessellator.draw();
+        // Can't use Tesselator, because the main thread can be using it simultaneously
+        GL11.glBegin(GL11.GL_QUADS);
+        GL11.glTexCoord2d(u * f, (v + vHeight) * f);
+        GL11.glVertex3d(x, y + drawnHeight, 0);
+        GL11.glTexCoord2d((u + uWidth) * f, (v + vHeight) * f);
+        GL11.glVertex3d(x + drawnWidth, y + drawnHeight, 0);
+        GL11.glTexCoord2d((u + uWidth) * f, v * f);
+        GL11.glVertex3d(x + drawnWidth, y, 0);
+        GL11.glTexCoord2d(u * f, v * f);
+        GL11.glVertex3d(x, y, 0);
+        GL11.glEnd();
     }
 
     private void preDisplayScreen() {
@@ -1131,7 +1059,6 @@ public class MinecraftDisplayer implements IDisplayer {
                     mc.fontRenderer.setBidiFlag(lm.isCurrentLanguageBidirectional());
                 }
                 mc.fontRenderer.onResourceManagerReload(mc.getResourceManager());
-                callAgain = true;
             }
         }
         if (fontRenderer != mc.fontRenderer) {
@@ -1153,37 +1080,34 @@ public class MinecraftDisplayer implements IDisplayer {
         GL11.glEnable(GL11.GL_TEXTURE_2D);
 
         GL11.glClearColor(clearRed, clearGreen, clearBlue, 1);
-        //EXPERIMENTAL!! - DISABLING THE WHITE CLEAT - EXPERIMENTAL!!!!
-        if (shouldGLClear) {
-            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);	
-		}
 
         GL11.glEnable(GL11.GL_BLEND);
-        //GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
         GL11.glEnable(GL11.GL_ALPHA_TEST);
-        //GL11.glEnable(1);
-        //GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
-        GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
+        GL11.glAlphaFunc(GL11.GL_GREATER, 1.F/255.F);
 
         GL11.glColor4f(1, 1, 1, 1);
-        
-        //BetterLoadingScreen.log.trace("alpha: "+GL11.GL_ALPHA);
-        //GL11.GL_ALPHA = 1000;
     }
 
     public ImageRender[] getImageData() {
         return images;
     }
 
-    private void postDisplayScreen() {
-        mc.func_147120_f();
-    }
-
     @Override
     public void close() {
-        //BetterLoadingScreen.log.trace("closing askip");
+        splashRenderKillSwitch = true;
+        if (splashRenderThread != null && splashRenderThread.isAlive()) {
+            try {
+                loadingDrawable.releaseContext();
+                splashRenderThread.join();
+                Display.getDrawable().makeCurrent();
+                Minecraft.getMinecraft().resize(Display.getWidth(), Display.getHeight());
+            } catch (LWJGLException | InterruptedException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        }
         if (tipExec != null) {
             tipExec.shutdown();
         }
