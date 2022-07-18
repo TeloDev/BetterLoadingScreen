@@ -1,8 +1,9 @@
 package alexiil.mods.load.coremod;
 
 import alexiil.mods.load.BetterLoadingScreen;
+import alexiil.mods.load.ProgressDisplayer;
+import cpw.mods.fml.client.FMLClientHandler;
 import net.minecraft.launchwrapper.IClassTransformer;
-
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.GL11;
 import org.objectweb.asm.ClassReader;
@@ -16,19 +17,14 @@ import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 
-import alexiil.mods.load.ProgressDisplayer;
-import cpw.mods.fml.client.FMLClientHandler;
-
 public class BetterLoadingScreenTransformer implements IClassTransformer, Opcodes {
     @Override
     public byte[] transform(String name, String transformedName, byte[] basicClass) {
         try {
-            if (transformedName.equals("net.minecraft.client.Minecraft"))
-                return transformMinecraft(basicClass);
+            if (transformedName.equals("net.minecraft.client.Minecraft")) return transformMinecraft(basicClass);
             if (name.equals("com.mumfrey.liteloader.client.api.ObjectFactoryClient"))
                 return transformObjectFactoryClient(basicClass);
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             BetterLoadingScreen.log.error("An issue occurred while transforming " + transformedName);
             t.printStackTrace();
         }
@@ -44,7 +40,8 @@ public class BetterLoadingScreenTransformer implements IClassTransformer, Opcode
             if (m.name.equals("preBeginGame")) {
                 m.instructions.clear();
                 m.instructions.add(new TypeInsnNode(NEW, "alexiil/mods/load/LiteLoaderProgress"));
-                m.instructions.add(new MethodInsnNode(INVOKESPECIAL, "alexiil/mods/load/LiteLoaderProgress", "<init>", "()V", false));
+                m.instructions.add(new MethodInsnNode(
+                        INVOKESPECIAL, "alexiil/mods/load/LiteLoaderProgress", "<init>", "()V", false));
                 m.instructions.add(new InsnNode(RETURN));
             }
         }
@@ -62,8 +59,7 @@ public class BetterLoadingScreenTransformer implements IClassTransformer, Opcode
         reader.accept(classNode, 0);
 
         for (MethodNode m : classNode.methods) {
-            if (hasFoundGL11)
-                break;
+            if (hasFoundGL11) break;
             if (m.exceptions.size() == 1 && m.exceptions.get(0).equals(Type.getInternalName(LWJGLException.class))) {
                 for (int i = 0; i < m.instructions.size(); i++) {
                     AbstractInsnNode node = m.instructions.get(i);
@@ -98,10 +94,14 @@ public class BetterLoadingScreenTransformer implements IClassTransformer, Opcode
                 if (!hasFoundFMLClientHandler) {
                     if (node instanceof MethodInsnNode) {
                         MethodInsnNode method = (MethodInsnNode) node;
-                        if (method.owner.equals(Type.getInternalName(FMLClientHandler.class)) && method.name.equals("instance")) {
-                            MethodInsnNode newOne =
-                                    new MethodInsnNode(INVOKESTATIC, Type.getInternalName(ProgressDisplayer.class), "minecraftDisplayFirstProgress",
-                                            "()V", false);
+                        if (method.owner.equals(Type.getInternalName(FMLClientHandler.class))
+                                && method.name.equals("instance")) {
+                            MethodInsnNode newOne = new MethodInsnNode(
+                                    INVOKESTATIC,
+                                    Type.getInternalName(ProgressDisplayer.class),
+                                    "minecraftDisplayFirstProgress",
+                                    "()V",
+                                    false);
                             m.instructions.insertBefore(method, newOne);
                             hasFoundFMLClientHandler = true;
                         }

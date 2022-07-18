@@ -1,12 +1,11 @@
 package alexiil.mods.load.gui;
 
+import cpw.mods.fml.client.GuiScrollingList;
 import java.util.ArrayList;
 import java.util.List;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.Tessellator;
-import cpw.mods.fml.client.GuiScrollingList;
 
 public abstract class TextGuiScrollingList extends GuiScrollingList {
     public static class LineInfo {
@@ -39,9 +38,7 @@ public abstract class TextGuiScrollingList extends GuiScrollingList {
 
     protected void addLine(LineInfo... lis) {
         ArrayList<LineInfo> lineInfos = new ArrayList<LineInfo>();
-        for (LineInfo l : lis)
-            if (l != null)
-                lineInfos.add(l);
+        for (LineInfo l : lis) if (l != null) lineInfos.add(l);
         strings.add(lineInfos);
     }
 
@@ -68,7 +65,6 @@ public abstract class TextGuiScrollingList extends GuiScrollingList {
     @Override
     protected void drawSlot(int index, int var2, int var3, int var4, Tessellator var5) {
         List<LineInfo> lis = strings.get(index);
-        for (LineInfo li : lis)
-            fontRenderer.drawString(li.text, left + 3 + li.xOffset, var3, li.colour);
+        for (LineInfo li : lis) fontRenderer.drawString(li.text, left + 3 + li.xOffset, var3, li.colour);
     }
 }

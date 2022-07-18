@@ -1,5 +1,7 @@
 package alexiil.mods.load.json;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -7,9 +9,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 public class JsonConfig<T> {
     private final Class<T> clazz;
@@ -29,16 +28,13 @@ public class JsonConfig<T> {
             writer = new BufferedWriter(new FileWriter(file));
             writer.write(new GsonBuilder().setPrettyPrinting().create().toJson(defaultConfig));
             writer.close();
-        }
-        catch (IOException e1) {
+        } catch (IOException e1) {
             e1.printStackTrace();
-        }
-        finally {
+        } finally {
             if (writer != null)
                 try {
                     writer.close();
-                }
-                catch (IOException e1) {
+                } catch (IOException e1) {
                     e1.printStackTrace();
                 }
         }
@@ -49,16 +45,13 @@ public class JsonConfig<T> {
         try {
             reader = new BufferedReader(new FileReader(file));
             return new Gson().fromJson(reader, clazz);
-        }
-        catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             createNew();
-        }
-        finally {
+        } finally {
             if (reader != null)
                 try {
                     reader.close();
-                }
-                catch (IOException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
         }

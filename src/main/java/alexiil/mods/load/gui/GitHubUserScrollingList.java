@@ -1,11 +1,10 @@
 package alexiil.mods.load.gui;
 
+import alexiil.mods.load.git.GitHubUser;
 import java.util.ArrayList;
 import java.util.List;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
-import alexiil.mods.load.git.GitHubUser;
 
 public class GitHubUserScrollingList extends TextGuiScrollingList {
     public final List<GitHubUser> userList = new ArrayList<GitHubUser>();

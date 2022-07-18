@@ -30,7 +30,7 @@ public class GuiPreview extends GuiScreen {
 
     @Override
     protected void keyTyped(char chr, int type) {
-        if (type == 1) {// Esc
+        if (type == 1) { // Esc
             close();
         }
     }
