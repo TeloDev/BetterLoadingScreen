@@ -22,6 +22,8 @@ public class BetterLoadingScreenTransformer implements IClassTransformer, Opcode
     public byte[] transform(String name, String transformedName, byte[] basicClass) {
         try {
             if (transformedName.equals("net.minecraft.client.Minecraft")) return transformMinecraft(basicClass);
+            if (transformedName.equals("cpw.mods.fml.client.SplashProgress"))
+                return transformSplashProgress(basicClass);
             if (name.equals("com.mumfrey.liteloader.client.api.ObjectFactoryClient"))
                 return transformObjectFactoryClient(basicClass);
         } catch (Throwable t) {
@@ -43,6 +45,23 @@ public class BetterLoadingScreenTransformer implements IClassTransformer, Opcode
                 m.instructions.add(new MethodInsnNode(
                         INVOKESPECIAL, "alexiil/mods/load/LiteLoaderProgress", "<init>", "()V", false));
                 m.instructions.add(new InsnNode(RETURN));
+            }
+        }
+
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+        classNode.accept(cw);
+        return cw.toByteArray();
+    }
+
+    private byte[] transformSplashProgress(byte[] before) {
+        ClassNode classNode = new ClassNode();
+        ClassReader reader = new ClassReader(before);
+        reader.accept(classNode, 0);
+
+        for (MethodNode m : classNode.methods) {
+            if (m.name.equals("finish")) {
+                m.instructions.insert(new MethodInsnNode(
+                        INVOKESTATIC, Type.getInternalName(ProgressDisplayer.class), "close", "()V", false));
             }
         }
 

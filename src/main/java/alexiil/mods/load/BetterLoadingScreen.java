@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Objects;
-import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import org.apache.logging.log4j.LogManager;
@@ -86,7 +85,7 @@ public class BetterLoadingScreen {
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
     public void guiOpen(GuiOpenEvent event) throws IOException {
-        if (event.gui instanceof GuiMainMenu) ProgressDisplayer.close();
+        ProgressDisplayer.close();
     }
 
     @SubscribeEvent

@@ -12,7 +12,6 @@ import alexiil.mods.load.json.*;
 import cpw.mods.fml.client.FMLFileResourcePack;
 import cpw.mods.fml.client.FMLFolderResourcePack;
 import cpw.mods.fml.client.SplashProgress;
-import cpw.mods.fml.common.FMLLog;
 import java.awt.*;
 import java.io.*;
 import java.lang.reflect.Field;
@@ -39,7 +38,6 @@ import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.client.resources.LanguageManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.config.Configuration;
-import org.apache.logging.log4j.Level;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
@@ -763,7 +761,11 @@ public class MinecraftDisplayer implements IDisplayer {
                     }
                     while (!MinecraftDisplayer.this.splashRenderKillSwitch) {
                         resetGlState();
-                        displayProgressInWorkerThread(currentText, currentPercent);
+                        try {
+                            displayProgressInWorkerThread(currentText, currentPercent);
+                        } catch (Exception e) {
+                            BetterLoadingScreen.log.warn("BLS splash error: ", e);
+                        }
 
                         fmlMutex.acquireUninterruptibly();
                         Display.update();
@@ -801,7 +803,7 @@ public class MinecraftDisplayer implements IDisplayer {
             });
             splashRenderThread.setName("BLS Splash renderer");
             splashRenderThread.setUncaughtExceptionHandler((Thread t, Throwable e) -> {
-                FMLLog.log(Level.ERROR, e, "BetterLodingScreen thread exception");
+                BetterLoadingScreen.log.error("BetterLodingScreen thread exception", e);
             });
             splashRenderThread.start();
             if (splashRenderThread.getState() == Thread.State.TERMINATED) {
@@ -1407,8 +1409,9 @@ public class MinecraftDisplayer implements IDisplayer {
 
     @Override
     public void close() {
-        splashRenderKillSwitch = true;
         if (splashRenderThread != null && splashRenderThread.isAlive()) {
+            BetterLoadingScreen.log.info("BLS Splash loading thread closing", new Throwable());
+            splashRenderKillSwitch = true;
             try {
                 loadingDrawable.releaseContext();
                 splashRenderThread.join();
