@@ -1,14 +1,10 @@
 package alexiil.mods.load.gui;
 
+import alexiil.mods.load.Translation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import alexiil.mods.load.BetterLoadingScreen;
-import alexiil.mods.load.ProgressDisplayer;
-import alexiil.mods.load.Translation;
-import alexiil.mods.load.git.GitHubUser;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
@@ -47,15 +43,13 @@ public class BaseConfig extends GuiScreen {
         while (true) {
             String preTranslation = "alexiillib.gui.config.help." + index;
             String text = Translation.translate(preTranslation);
-            if (preTranslation.equals(text))
-                break;
+            if (preTranslation.equals(text)) break;
             String[] strings1 = text.split("\n");
             for (int i = 0; i < strings1.length; i++) {
                 String s = strings1[i];
                 String nextLine = "";
                 while (fontRendererObj.getStringWidth(s) > maxXPos && s != null) {
-                    if (s.length() <= 10)
-                        break;
+                    if (s.length() <= 10) break;
                     nextLine = s.substring(s.length() - 1) + nextLine;
                     s = s.substring(0, s.length() - 1);
                 }
@@ -76,14 +70,14 @@ public class BaseConfig extends GuiScreen {
         drawBackground(0);
         String text = Translation.translate("alexiillib.gui.connectExternallyDisabled");
         int textWidth = fontRendererObj.getStringWidth(text);
-        drawHoveringText(Collections.singletonList(text), (this.width - textWidth) / 2, this.height / 2, fontRendererObj);
+        drawHoveringText(
+                Collections.singletonList(text), (this.width - textWidth) / 2, this.height / 2, fontRendererObj);
 
         super.drawScreen(mouseX, mouseY, partialTicks);
 
         if (help) {
             int yHeight = 0;
-            for (List<String> ss : helpText)
-                yHeight += fontRendererObj.FONT_HEIGHT * (ss.size() + 1);
+            for (List<String> ss : helpText) yHeight += fontRendererObj.FONT_HEIGHT * (ss.size() + 1);
             drawGradientRect(xPosHelp, 40, xPosHelp + 440, yHeight + 80, 0xFF000000, 0xFF000000);
             int yPos = 60;
             for (List<String> strings : helpText) {

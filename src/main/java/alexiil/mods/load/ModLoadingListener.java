@@ -4,16 +4,20 @@ import com.google.common.eventbus.Subscribe;
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.relauncher.FMLLaunchHandler;
-import net.minecraftforge.common.MinecraftForge;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraftforge.common.MinecraftForge;
 
 public class ModLoadingListener {
     public enum State {
-        CONSTRUCT("construction"), PRE_INIT("pre_initialization"), LITE_LOADER_INIT("lite", true, true), INIT("initialization"), POST_INIT(
-                "post_initialization"), LOAD_COMPLETE("completed"), FINAL_LOADING("reloading_resource_packs", true, false);
+        CONSTRUCT("construction"),
+        PRE_INIT("pre_initialization"),
+        LITE_LOADER_INIT("lite", true, true),
+        INIT("initialization"),
+        POST_INIT("post_initialization"),
+        LOAD_COMPLETE("completed"),
+        FINAL_LOADING("reloading_resource_packs", true, false);
 
         private String translatedName = null;
         final String name;
@@ -34,8 +38,7 @@ public class ModLoadingListener {
         }
 
         public String translate() {
-            if (translatedName != null)
-                return translatedName;
+            if (translatedName != null) return translatedName;
             StringBuilder failure = new StringBuilder(name.replaceAll("_", " "));
             String[] split = failure.toString().split(" ");
             failure = new StringBuilder();
@@ -69,31 +72,29 @@ public class ModLoadingListener {
             if (ind == listeners.size() || s.isLoneState) {
                 ind = 0;
                 int ord = s.ordinal() + 1;
-                if (ord == State.values().length)
-                    return null;
+                if (ord == State.values().length) return null;
                 s = State.values()[ord];
-                if (s.shouldSkip)
-                    return new ModStage(s, ind).getNext();
+                if (s.shouldSkip) return new ModStage(s, ind).getNext();
             }
             return new ModStage(s, ind);
         }
 
         public String getDisplayText() {
-            if (state.isLoneState)
-                return state.translate();
+            if (state.isLoneState) return state.translate();
             return state.translate() + ": " + Translation.translate("betterloadingscreen.loading", "loading") + " "
                     + listeners.get(index).mod.getName();
         }
 
         public float getProgress() {
-            float values = 100 / (float) (State.values().length-1);
+            float values = 100 / (float) (State.values().length - 1);
             float part = state.ordinal() * values;
             float size = listeners.size();
             float percent = values * index / size;
             return part + percent;
         }
-        public float getPercent( ) {
-        	float values = 100 / (float) (State.values().length-1);
+
+        public float getPercent() {
+            float values = 100 / (float) (State.values().length - 1);
             float size = listeners.size();
             return values * index / size;
         }
@@ -106,8 +107,7 @@ public class ModLoadingListener {
 
     public ModLoadingListener(ModContainer mod) {
         this.mod = mod;
-        if (listeners.isEmpty())
-            MinecraftForge.EVENT_BUS.register(this);
+        if (listeners.isEmpty()) MinecraftForge.EVENT_BUS.register(this);
         listeners.add(this);
     }
 
@@ -138,10 +138,8 @@ public class ModLoadingListener {
 
     public static void doProgress(State state, ModLoadingListener mod) throws IOException {
         if (stage == null)
-            if (mod == null)
-                stage = new ModStage(state, 0);
-            else
-                stage = new ModStage(state, listeners.indexOf(mod));
+            if (mod == null) stage = new ModStage(state, 0);
+            else stage = new ModStage(state, listeners.indexOf(mod));
         String text = stage.getDisplayText();
         float percent = stage.getProgress() / 100F;
         stage = stage.getNext();
@@ -149,7 +147,7 @@ public class ModLoadingListener {
             text = stage.getDisplayText();
             percent = stage.getProgress() / 100F;
         }
-        if(FMLLaunchHandler.side().isClient()) {
+        if (FMLLaunchHandler.side().isClient()) {
             ProgressDisplayer.displayProgress(text, percent);
         }
     }

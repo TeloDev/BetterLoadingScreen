@@ -1,10 +1,11 @@
 package alexiil.mods.load.gui;
 
+import alexiil.mods.load.json.EType;
+import alexiil.mods.load.json.ImageRender;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -20,11 +21,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-
 import org.apache.commons.lang3.StringUtils;
-
-import alexiil.mods.load.json.EType;
-import alexiil.mods.load.json.ImageRender;
 
 @SuppressWarnings("serial")
 public class FrameEditor extends JFrame {
@@ -52,7 +49,7 @@ public class FrameEditor extends JFrame {
         renderList.setModel(renderListInternal = new DefaultListModel<String>());
 
         renderList.addListSelectionListener(new ListSelectionListener() {
-            @Override                                      // TODO (JDK8): Convert to lambda
+            @Override // TODO (JDK8): Convert to lambda
             public void valueChanged(ListSelectionEvent e) {
                 if (e.getValueIsAdjusting()) {
                     return;
@@ -61,8 +58,7 @@ public class FrameEditor extends JFrame {
                 int index = renderList.getSelectedIndex();
                 if (index == -1) {
                     settingsPanel.removeAll();
-                }
-                else {
+                } else {
                     settingsPanel.add(handle(renders[index]));
                 }
                 settingsPanel.invalidate();
