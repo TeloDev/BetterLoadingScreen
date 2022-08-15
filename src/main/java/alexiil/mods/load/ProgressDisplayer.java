@@ -1,5 +1,12 @@
 package alexiil.mods.load;
 
+import cpw.mods.fml.client.FMLFileResourcePack;
+import cpw.mods.fml.common.DummyModContainer;
+import cpw.mods.fml.common.ModContainer;
+import cpw.mods.fml.common.ModMetadata;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.io.FileReader;
@@ -8,25 +15,20 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Properties;
-
-import cpw.mods.fml.client.FMLFileResourcePack;
-import cpw.mods.fml.common.DummyModContainer;
-import cpw.mods.fml.common.ModContainer;
-import cpw.mods.fml.common.ModMetadata;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.common.config.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Level;
 
 public class ProgressDisplayer {
-	private static boolean hasTurnedSplashOff = false;
-	private static boolean forgeSplashWasTrue = false;
+    private static boolean hasTurnedSplashOff = false;
+    private static boolean forgeSplashWasTrue = false;
+
     public interface IDisplayer {
         void open(Configuration cfg);
+
         void displayProgress(String text, float percent);
+
         void close();
     }
 
@@ -44,8 +46,7 @@ public class ProgressDisplayer {
 
         @Override
         public void displayProgress(String text, float percent) {
-            if (frame == null)
-                return;
+            if (frame == null) return;
             frame.setMessage(text);
             frame.setProgress(percent * 100F);
             frame.repaint();
@@ -53,17 +54,14 @@ public class ProgressDisplayer {
 
         @Override
         public void close() {
-            if (frame != null)
-                frame.dispose();
+            if (frame != null) frame.dispose();
         }
     }
 
     public static class LoggingDisplayer implements IDisplayer {
 
         @Override
-        public void open(Configuration cfg) {
-
-        }
+        public void open(Configuration cfg) {}
 
         @Override
         public void displayProgress(String text, float percent) {
@@ -84,8 +82,7 @@ public class ProgressDisplayer {
     private static boolean hasInitRL = false;
 
     public static boolean isClient() {
-        if (clientState != -1)
-            return clientState == 1;
+        if (clientState != -1) return clientState == 1;
         StackTraceElement[] steArr = Thread.currentThread().getStackTrace();
         for (StackTraceElement ste : steArr) {
             if (ste.getClassName().startsWith("cpw.mods.fml.relauncher.ServerLaunchWrapper")) {
@@ -103,13 +100,11 @@ public class ProgressDisplayer {
             Object instance = resLoaderClass.newInstance();
             resLoaderClass.getField("INSTANCE").set(null, instance);
             Method m = resLoaderClass.getMethod("preInit", FMLPreInitializationEvent.class);
-            m.invoke(instance, new Object[] { null });
+            m.invoke(instance, new Object[] {null});
             BetterLoadingScreen.log.debug("Resource loader loaded early successfully :)");
-        }
-        catch (ClassNotFoundException ex) {
+        } catch (ClassNotFoundException ex) {
             BetterLoadingScreen.log.warn("Resource loader not loaded, not initialising early");
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             BetterLoadingScreen.log.error("Resource Loader Compat FAILED!");
             t.printStackTrace();
         }
@@ -118,8 +113,7 @@ public class ProgressDisplayer {
     public static void start(File coremodLocation) {
         LoadingFrame.setSystemLAF();
         coreModLocation = coremodLocation;
-        if (coreModLocation == null)
-            coreModLocation = new File("./../bin/");
+        if (coreModLocation == null) coreModLocation = new File("./../bin/");
         // Assume this is a dev environment, and that the build dir is in bin, and the test dir has the same parent as
         // the bin dir...
         ModMetadata md = new ModMetadata();
@@ -142,8 +136,8 @@ public class ProgressDisplayer {
             }
         };
 
-        //File fileOld = new File("./config/betterloadingscreen.cfg");
-        //File fileNew = new File("./config/BetterLoadingScreen/config.cfg");
+        // File fileOld = new File("./config/betterloadingscreen.cfg");
+        // File fileNew = new File("./config/BetterLoadingScreen/config.cfg");
         File fileOld = new File("./config/Betterloadingscreen/betterloadingscreen.cfg");
 
         /*if (fileOld.exists())
@@ -152,74 +146,67 @@ public class ProgressDisplayer {
             cfg = new Configuration(fileNew);*/
         String n = System.lineSeparator();
         cfg = new Configuration(fileOld);
-        
+
         boolean useMinecraft = isClient();
 
         if (useMinecraft) {
             String comment =
                     "Whether or not to use minecraft's display to show the progress. This looks better, but there is a possibility of not being ";
-            comment += "compatible, so if you do have any strange crash reports or compatibility issues, try setting this to false" + n +
-            		"Note: IIRC, setting this to false makes the screen black";
+            comment +=
+                    "compatible, so if you do have any strange crash reports or compatibility issues, try setting this to false"
+                            + n + "Note: IIRC, setting this to false makes the screen black";
             useMinecraft = cfg.getBoolean("useMinecraft", "general", true, comment);
         }
 
-        playSound = cfg.getBoolean("playSound", "general", true, "Play a sound after minecraft has finished starting up");
+        playSound =
+                cfg.getBoolean("playSound", "general", true, "Play a sound after minecraft has finished starting up");
 
-        if (useMinecraft)
-            displayer = new MinecraftDisplayerWrapper();
-        else if (!GraphicsEnvironment.isHeadless())
-            displayer = new FrameDisplayer();
-        else
-            displayer = new LoggingDisplayer();
+        if (useMinecraft) displayer = new MinecraftDisplayerWrapper();
+        else if (!GraphicsEnvironment.isHeadless()) displayer = new FrameDisplayer();
+        else displayer = new LoggingDisplayer();
         displayer.open(cfg);
         cfg.save();
     }
-    
+
     public static boolean setForgeSplashEnabled(boolean enabled) throws IOException {
-    	boolean hasTurnedOff = false;
+        boolean hasTurnedOff = false;
         File configFile = new File(Minecraft.getMinecraft().mcDataDir, "config/splash.properties");
         FileReader r = null;
         Properties config = new Properties();
-        try
-        {
+        try {
             r = new FileReader(configFile);
             config.load(r);
-        }
-        catch(IOException e)
-        {
+        } catch (IOException e) {
             BetterLoadingScreen.log.info("Forge splash screen settings not found, will create a dummy one");
-        }
-        finally
-        {
+        } finally {
             IOUtils.closeQuietly(r);
         }
         config.setProperty("enabled", Boolean.toString(enabled));
         FileWriter w = null;
-        try
-        {
+        try {
             w = new FileWriter(configFile);
             config.store(w, "Splash screen properties");
             hasTurnedOff = true;
-            BetterLoadingScreen.log.info("Turned Forge splash screen " + (enabled ? "on" : "off") + " in splash.properties");
-        }
-        catch(IOException e)
-        {
-            BetterLoadingScreen.log.log(Level.ERROR, "Could not turn Forge splash screen " + (enabled ? "on" : "off") + " in splash.properties", e);
-        }
-        finally
-        {
+            BetterLoadingScreen.log.info(
+                    "Turned Forge splash screen " + (enabled ? "on" : "off") + " in splash.properties");
+        } catch (IOException e) {
+            BetterLoadingScreen.log.log(
+                    Level.ERROR,
+                    "Could not turn Forge splash screen " + (enabled ? "on" : "off") + " in splash.properties",
+                    e);
+        } finally {
             IOUtils.closeQuietly(w);
         }
         return hasTurnedOff;
     }
-    
+
     public static void displayProgress(String text, float percent) throws IOException {
-    	if (!hasTurnedSplashOff) {
-			hasTurnedSplashOff = true;
-    		if (setForgeSplashEnabled(false)) {
-    			forgeSplashWasTrue = true;
-    		}
-		}
+        if (!hasTurnedSplashOff) {
+            hasTurnedSplashOff = true;
+            if (setForgeSplashEnabled(false)) {
+                forgeSplashWasTrue = true;
+            }
+        }
         if (!hasInitRL) {
             loadResourceLoader();
             overrideForgeSplashProgress();
@@ -229,8 +216,7 @@ public class ProgressDisplayer {
     }
 
     public static void close() throws IOException {
-        if (displayer == null)
-            return;
+        if (displayer == null) return;
         displayer.close();
         displayer = null;
         if (isClient() && playSound) {
@@ -240,15 +226,15 @@ public class ProgressDisplayer {
                 public void run() {
                     try {
                         Thread.sleep(2000);
+                    } catch (InterruptedException e) {
                     }
-                    catch (InterruptedException e) {}
                     MinecraftDisplayerWrapper.playFinishedSound();
                 }
             }.start();
         }
         if (forgeSplashWasTrue) {
-			setForgeSplashEnabled(true);
-		}
+            setForgeSplashEnabled(true);
+        }
     }
 
     private static void overrideForgeSplashProgress() {
@@ -263,8 +249,7 @@ public class ProgressDisplayer {
             fi = cl.getDeclaredField("done");
             fi.setAccessible(true);
             fi.set(null, true);
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             BetterLoadingScreen.log.error("Could not override forge's splash screen for some reason...");
             BetterLoadingScreen.log.error("class = " + cl);
             BetterLoadingScreen.log.error("field = " + fi);
@@ -273,6 +258,7 @@ public class ProgressDisplayer {
     }
 
     public static void minecraftDisplayFirstProgress() throws IOException {
-        displayProgress(Translation.translate("betterloadingscreen.state.minecraft_init", "Minecraft Initializing"), 0F);
+        displayProgress(
+                Translation.translate("betterloadingscreen.state.minecraft_init", "Minecraft Initializing"), 0F);
     }
 }

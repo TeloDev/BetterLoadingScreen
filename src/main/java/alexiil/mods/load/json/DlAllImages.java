@@ -2,18 +2,18 @@ package alexiil.mods.load.json;
 
 import alexiil.mods.load.BetterLoadingScreen;
 import alexiil.mods.load.MinecraftDisplayer;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 public class DlAllImages implements Runnable {
 
-    public DlAllImages (CountDownLatch countDownLatch) {
+    public DlAllImages(CountDownLatch countDownLatch) {
         this.countDownLatch = countDownLatch;
     }
 
     private CountDownLatch countDownLatch;
+
     @Override
     public void run() {
         BetterLoadingScreen.log.trace("hmmmmmm");
@@ -35,7 +35,7 @@ public class DlAllImages implements Runnable {
             imagePaths.add(ImageDownload.dlImage(imageUrls[i], String.valueOf(i)));
         }
         MinecraftDisplayer.randomBackgroundArray = imagePaths.toArray(new String[0]);
-        BetterLoadingScreen.log.trace("bg_array is: "+MinecraftDisplayer.randomBackgroundArray.toString());
+        BetterLoadingScreen.log.trace("bg_array is: " + MinecraftDisplayer.randomBackgroundArray.toString());
 
         countDownLatch.countDown();
     }

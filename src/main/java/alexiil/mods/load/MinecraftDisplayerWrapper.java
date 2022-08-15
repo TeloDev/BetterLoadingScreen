@@ -1,7 +1,7 @@
 package alexiil.mods.load;
 
-import net.minecraftforge.common.config.Configuration;
 import alexiil.mods.load.ProgressDisplayer.IDisplayer;
+import net.minecraftforge.common.config.Configuration;
 
 public class MinecraftDisplayerWrapper implements IDisplayer {
     private MinecraftDisplayer mcDisp;
@@ -18,22 +18,19 @@ public class MinecraftDisplayerWrapper implements IDisplayer {
             try {
                 mcDisp = new MinecraftDisplayer();
                 mcDisp.open(cfg);
-            }
-            catch (Throwable t) {
+            } catch (Throwable t) {
                 BetterLoadingScreen.log.error("Failed to load Minecraft Displayer!");
                 t.printStackTrace();
                 mcDisp = null;
             }
             cfg.save();
         }
-        if (mcDisp != null)
-            mcDisp.displayProgress(text, percent);
+        if (mcDisp != null) mcDisp.displayProgress(text, percent);
     }
 
     @Override
     public void close() {
-        if (mcDisp != null)
-            mcDisp.close();
+        if (mcDisp != null) mcDisp.close();
     }
 
     public static void playFinishedSound() {

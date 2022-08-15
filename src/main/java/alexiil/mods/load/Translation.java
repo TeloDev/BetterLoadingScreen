@@ -48,8 +48,10 @@ public class Translation {
                     String name = je.getName();
                     if (name.startsWith(lookingFor) && !name.equals(lookingFor)) {
                         try {
-                            addTranslation(name.replace(lookingFor, "").replace(".lang", ""),
-                                    new BufferedReader(new InputStreamReader(modJar.getInputStream(je), StandardCharsets.UTF_8)));
+                            addTranslation(
+                                    name.replace(lookingFor, "").replace(".lang", ""),
+                                    new BufferedReader(
+                                            new InputStreamReader(modJar.getInputStream(je), StandardCharsets.UTF_8)));
                         } catch (IOException e) {
                             BetterLoadingScreen.log.error("Had trouble opening " + name);
                         }
@@ -58,9 +60,11 @@ public class Translation {
             } catch (IOException e) {
                 BetterLoadingScreen.log.error("Could not open file");
             } finally {
-                if (modJar != null) try {
-                    modJar.close();
-                } catch (IOException e) {}
+                if (modJar != null)
+                    try {
+                        modJar.close();
+                    } catch (IOException e) {
+                    }
             }
         }
 
@@ -77,12 +81,14 @@ public class Translation {
                     language = parts[1];
                 }
             }
-        } catch (IOException ignored) {} finally {
-            if (reader != null) try {
-                reader.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        } catch (IOException ignored) {
+        } finally {
+            if (reader != null)
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
         }
         if (translators.containsKey(language)) currentTranslation = translators.get(language);
         else if (translators.containsKey("en_US")) {
@@ -90,8 +96,9 @@ public class Translation {
             currentTranslation = translators.get("en_US");
         } else if (!translators.isEmpty()) {
             String name = translators.keySet().iterator().next();
-            BetterLoadingScreen.log.warn("Failed to load " + language + ", AND FAILED TO LOAD en_US! One available however is " + name
-                + ", using that and keeping quiet...");
+            BetterLoadingScreen.log.warn(
+                    "Failed to load " + language + ", AND FAILED TO LOAD en_US! One available however is " + name
+                            + ", using that and keeping quiet...");
             currentTranslation = translators.values().iterator().next();
         } else {
             BetterLoadingScreen.log.error("Failed to load ANY languages! All strings fail now!");

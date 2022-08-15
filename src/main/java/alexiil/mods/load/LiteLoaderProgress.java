@@ -1,8 +1,7 @@
 package alexiil.mods.load;
 
-import java.io.IOException;
-
 import com.mumfrey.liteloader.client.gui.startup.LoadingBar;
+import java.io.IOException;
 
 public class LiteLoaderProgress extends LoadingBar {
     private static final int NUM_STATES = ModLoadingListener.State.values().length;
@@ -26,22 +25,22 @@ public class LiteLoaderProgress extends LoadingBar {
         message = arg0;
         liteProgress++;
         try {
-			render();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+            render();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     @Override
     protected void _incTotalLiteLoaderProgress(int arg0) {
         totalLiteProgress += arg0;
         try {
-			render();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+            render();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     private void render() throws IOException {

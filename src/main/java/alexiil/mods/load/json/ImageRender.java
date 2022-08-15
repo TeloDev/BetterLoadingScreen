@@ -12,7 +12,14 @@ public class ImageRender {
     public String text;
     public String comment;
 
-    public ImageRender(String resourceLocation, EPosition positionType, EType type, Area texture, Area position, String colour, String text,
+    public ImageRender(
+            String resourceLocation,
+            EPosition positionType,
+            EType type,
+            Area texture,
+            Area position,
+            String colour,
+            String text,
             String comment) {
         this.resourceLocation = resourceLocation;
         this.positionType = positionType;
@@ -29,28 +36,23 @@ public class ImageRender {
     }
 
     public int transformX(int screenWidth) {
-        if (position == null || positionType == null)
-            return 0;
+        if (position == null || positionType == null) return 0;
         int trueX = position.width;
-        if (trueX == 0)
-            trueX = screenWidth;
+        if (trueX == 0) trueX = screenWidth;
         return positionType.transformX(position.x, screenWidth - trueX);
     }
 
     public int transformY(int screenHeight) {
-        if (position == null || positionType == null)
-            return 0;
+        if (position == null || positionType == null) return 0;
         return positionType.transformY(position.y, screenHeight - position.height);
     }
 
     public int getColour() {
-        if (colour == null)
-            return 0xFFFFFF;
+        if (colour == null) return 0xFFFFFF;
         else {
             try {
                 return Integer.parseInt(colour, 16);
-            }
-            catch (NumberFormatException nfe) {
+            } catch (NumberFormatException nfe) {
                 return 0xFFFFFF;
             }
         }

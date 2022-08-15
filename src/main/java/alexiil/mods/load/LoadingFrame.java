@@ -5,7 +5,6 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -39,8 +38,7 @@ public class LoadingFrame extends JFrame {
             while (timeLeft > 0 && shouldIncrement.get()) {
                 try {
                     Thread.sleep(250);
-                }
-                catch (InterruptedException e) {
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                     break;
                 }
@@ -50,8 +48,7 @@ public class LoadingFrame extends JFrame {
                 setProgress(from + percent * diff);
                 repaint();
             }
-            if (incrementer == this)
-                incrementer = null;
+            if (incrementer == this) incrementer = null;
         }
     }
 
@@ -65,8 +62,7 @@ public class LoadingFrame extends JFrame {
         String clsName = UIManager.getSystemLookAndFeelClassName();
         try {
             UIManager.setLookAndFeel(clsName);
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             t.printStackTrace();
         }
     }
@@ -79,8 +75,7 @@ public class LoadingFrame extends JFrame {
             frame.setAlwaysOnTop(true);
             frame.setVisible(true);
             return frame;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -89,7 +84,8 @@ public class LoadingFrame extends JFrame {
     public static Rectangle getWindowBounds(LoadingFrame frame) {
         Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
         Rectangle bounds = frame.getBounds();
-        return new Rectangle((size.width - bounds.width) / 2, (size.height - bounds.height) / 2, bounds.width, bounds.height);
+        return new Rectangle(
+                (size.width - bounds.width) / 2, (size.height - bounds.height) / 2, bounds.width, bounds.height);
     }
 
     /** Create the frame. */
