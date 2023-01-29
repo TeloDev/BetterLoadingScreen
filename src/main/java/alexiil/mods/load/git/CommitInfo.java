@@ -1,7 +1,9 @@
 package alexiil.mods.load.git;
 
 public class CommitInfo {
+
     public static class Commiter {
+
         public final String name, email, date;
 
         public Commiter(String name, String email, String date) {
@@ -12,6 +14,7 @@ public class CommitInfo {
     }
 
     public static class Tree {
+
         public final String sha, url;
 
         public Tree(String sha, String url) {

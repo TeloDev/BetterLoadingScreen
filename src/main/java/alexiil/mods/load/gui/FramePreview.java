@@ -8,6 +8,7 @@ import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -20,6 +21,7 @@ import javax.swing.event.DocumentListener;
 
 @SuppressWarnings("serial")
 public class FramePreview extends JFrame {
+
     private JPanel contentPane;
 
     private JTextField textField;
@@ -41,6 +43,7 @@ public class FramePreview extends JFrame {
         JButton btnEditor = new JButton("Open Editor");
         pnlButtons.add(btnEditor);
         btnEditor.addActionListener(new ActionListener() {
+
             @Override
             public void actionPerformed(ActionEvent e) {
                 FrameEditor editor = new FrameEditor(gui);
@@ -51,6 +54,7 @@ public class FramePreview extends JFrame {
         JButton btnClose = new JButton("Exit");
         pnlButtons.add(btnClose);
         btnClose.addActionListener(new ActionListener() {
+
             @Override
             public void actionPerformed(ActionEvent e) {
                 gui.close();
@@ -69,6 +73,7 @@ public class FramePreview extends JFrame {
         textField.setToolTipText("message to display");
         textField.setText("Random Text");
         textField.getDocument().addDocumentListener(new DocumentListener() {
+
             @Override
             public void removeUpdate(DocumentEvent e) {
                 gui.debugText = textField.getText();
@@ -90,6 +95,7 @@ public class FramePreview extends JFrame {
         scrollBar.setValue(20);
         scrollBar.setOrientation(JScrollBar.HORIZONTAL);
         scrollBar.addAdjustmentListener(new AdjustmentListener() {
+
             @Override
             public void adjustmentValueChanged(AdjustmentEvent e) {
                 gui.debugPercent = scrollBar.getValue() / 100f;
@@ -98,6 +104,7 @@ public class FramePreview extends JFrame {
         pnlVariables.add(scrollBar);
 
         addWindowListener(new WindowAdapter() {
+
             @Override
             public void windowClosed(WindowEvent e) {
                 gui.close();

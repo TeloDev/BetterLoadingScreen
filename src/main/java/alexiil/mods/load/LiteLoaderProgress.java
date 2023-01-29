@@ -1,9 +1,11 @@
 package alexiil.mods.load;
 
-import com.mumfrey.liteloader.client.gui.startup.LoadingBar;
 import java.io.IOException;
 
+import com.mumfrey.liteloader.client.gui.startup.LoadingBar;
+
 public class LiteLoaderProgress extends LoadingBar {
+
     private static final int NUM_STATES = ModLoadingListener.State.values().length;
     private static final int LITE_LOADER_INIT_ORDINAL = ModLoadingListener.State.LITE_LOADER_INIT.ordinal();
     private static final float LITE_LOADER_START_PERCENT = LITE_LOADER_INIT_ORDINAL / (float) NUM_STATES;

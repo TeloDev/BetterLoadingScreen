@@ -1,10 +1,11 @@
 package alexiil.mods.load.json;
 
-import alexiil.mods.load.BetterLoadingScreen;
-import alexiil.mods.load.MinecraftDisplayer;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+
+import alexiil.mods.load.BetterLoadingScreen;
+import alexiil.mods.load.MinecraftDisplayer;
 
 public class DlAllImages implements Runnable {
 

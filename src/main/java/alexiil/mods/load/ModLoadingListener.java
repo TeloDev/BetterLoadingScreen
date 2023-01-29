@@ -1,16 +1,21 @@
 package alexiil.mods.load;
 
-import com.google.common.eventbus.Subscribe;
-import cpw.mods.fml.common.ModContainer;
-import cpw.mods.fml.common.event.*;
-import cpw.mods.fml.relauncher.FMLLaunchHandler;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import net.minecraftforge.common.MinecraftForge;
 
+import com.google.common.eventbus.Subscribe;
+
+import cpw.mods.fml.common.ModContainer;
+import cpw.mods.fml.common.event.*;
+import cpw.mods.fml.relauncher.FMLLaunchHandler;
+
 public class ModLoadingListener {
+
     public enum State {
+
         CONSTRUCT("construction"),
         PRE_INIT("pre_initialization"),
         LITE_LOADER_INIT("lite", true, true),
@@ -23,8 +28,10 @@ public class ModLoadingListener {
         final String name;
         /** If this state is only called once. This is false for all except for FINAL_LOADING */
         final boolean isLoneState;
-        /** If this is true, then ModStage.getNext will skip this, but it will still be included in the percentage
-         * calculation */
+        /**
+         * If this is true, then ModStage.getNext will skip this, but it will still be included in the percentage
+         * calculation
+         */
         final boolean shouldSkip;
 
         State(String name, boolean mods, boolean skip) {
@@ -52,6 +59,7 @@ public class ModLoadingListener {
     }
 
     private static class ModStage {
+
         public final State state;
 
         @Override
@@ -81,7 +89,9 @@ public class ModLoadingListener {
 
         public String getDisplayText() {
             if (state.isLoneState) return state.translate();
-            return state.translate() + ": " + Translation.translate("betterloadingscreen.loading", "loading") + " "
+            return state.translate() + ": "
+                    + Translation.translate("betterloadingscreen.loading", "loading")
+                    + " "
                     + listeners.get(index).mod.getName();
         }
 
@@ -137,9 +147,8 @@ public class ModLoadingListener {
     }
 
     public static void doProgress(State state, ModLoadingListener mod) throws IOException {
-        if (stage == null)
-            if (mod == null) stage = new ModStage(state, 0);
-            else stage = new ModStage(state, listeners.indexOf(mod));
+        if (stage == null) if (mod == null) stage = new ModStage(state, 0);
+        else stage = new ModStage(state, listeners.indexOf(mod));
         String text = stage.getDisplayText();
         float percent = stage.getProgress() / 100F;
         stage = stage.getNext();

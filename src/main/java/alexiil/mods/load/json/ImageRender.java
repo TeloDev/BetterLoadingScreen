@@ -3,6 +3,7 @@ package alexiil.mods.load.json;
 import java.awt.Color;
 
 public class ImageRender {
+
     public String resourceLocation;
     public EPosition positionType;
     public EType type;
@@ -12,15 +13,8 @@ public class ImageRender {
     public String text;
     public String comment;
 
-    public ImageRender(
-            String resourceLocation,
-            EPosition positionType,
-            EType type,
-            Area texture,
-            Area position,
-            String colour,
-            String text,
-            String comment) {
+    public ImageRender(String resourceLocation, EPosition positionType, EType type, Area texture, Area position,
+            String colour, String text, String comment) {
         this.resourceLocation = resourceLocation;
         this.positionType = positionType;
         this.type = type;

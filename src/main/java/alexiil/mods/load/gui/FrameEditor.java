@@ -1,11 +1,10 @@
 package alexiil.mods.load.gui;
 
-import alexiil.mods.load.json.EType;
-import alexiil.mods.load.json.ImageRender;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -21,10 +20,15 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
 import org.apache.commons.lang3.StringUtils;
+
+import alexiil.mods.load.json.EType;
+import alexiil.mods.load.json.ImageRender;
 
 @SuppressWarnings("serial")
 public class FrameEditor extends JFrame {
+
     private JPanel contentPane, settingsPanel;
     private JList<String> renderList;
     private DefaultListModel<String> renderListInternal;
@@ -49,6 +53,7 @@ public class FrameEditor extends JFrame {
         renderList.setModel(renderListInternal = new DefaultListModel<String>());
 
         renderList.addListSelectionListener(new ListSelectionListener() {
+
             @Override // TODO (JDK8): Convert to lambda
             public void valueChanged(ListSelectionEvent e) {
                 if (e.getValueIsAdjusting()) {
@@ -115,6 +120,7 @@ public class FrameEditor extends JFrame {
             colour.add(colourPreview);
 
             colourChanger.addActionListener(new ActionListener() {
+
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     Color c = JColorChooser.showDialog(null, "Choose a colour", new Color(render.getColour()));

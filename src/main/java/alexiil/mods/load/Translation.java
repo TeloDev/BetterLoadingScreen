@@ -11,6 +11,7 @@ import java.util.jar.JarFile;
 
 @Deprecated
 public class Translation {
+
     private static Map<String, Translation> translators = new HashMap<String, Translation>();
     private static Translation currentTranslation = null;
     private Map<String, String> translations = new HashMap<String, String>();
@@ -60,11 +61,9 @@ public class Translation {
             } catch (IOException e) {
                 BetterLoadingScreen.log.error("Could not open file");
             } finally {
-                if (modJar != null)
-                    try {
-                        modJar.close();
-                    } catch (IOException e) {
-                    }
+                if (modJar != null) try {
+                    modJar.close();
+                } catch (IOException e) {}
             }
         }
 
@@ -81,14 +80,12 @@ public class Translation {
                     language = parts[1];
                 }
             }
-        } catch (IOException ignored) {
-        } finally {
-            if (reader != null)
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        } catch (IOException ignored) {} finally {
+            if (reader != null) try {
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         if (translators.containsKey(language)) currentTranslation = translators.get(language);
         else if (translators.containsKey("en_US")) {
@@ -97,7 +94,9 @@ public class Translation {
         } else if (!translators.isEmpty()) {
             String name = translators.keySet().iterator().next();
             BetterLoadingScreen.log.warn(
-                    "Failed to load " + language + ", AND FAILED TO LOAD en_US! One available however is " + name
+                    "Failed to load " + language
+                            + ", AND FAILED TO LOAD en_US! One available however is "
+                            + name
                             + ", using that and keeping quiet...");
             currentTranslation = translators.values().iterator().next();
         } else {

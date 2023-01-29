@@ -1,19 +1,23 @@
 package alexiil.mods.load.json;
 
-import alexiil.mods.load.BetterLoadingScreen;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import alexiil.mods.load.BetterLoadingScreen;
+
 public class ImgurTest {
+
     private static OkHttpClient httpClient;
     // private OkHttpClient httpClient;
     private static final String USER_AGENT = "BetterLoadingScreenMod";
@@ -34,12 +38,10 @@ public class ImgurTest {
         BetterLoadingScreen.log.trace("sendget func");
         final List<String> images = new ArrayList<>();
         httpClient = new OkHttpClient.Builder().build();
-        Request request = new Request.Builder()
-                .url(url)
-                .header("Authorization", "Client-ID " + CLIENT_ID)
-                .header("User-Agent", USER_AGENT)
-                .build();
+        Request request = new Request.Builder().url(url).header("Authorization", "Client-ID " + CLIENT_ID)
+                .header("User-Agent", USER_AGENT).build();
         httpClient.newCall(request).enqueue(new Callback() {
+
             @Override
             public void onFailure(Call call, IOException e) {
                 BetterLoadingScreen.log.error("An error has occurred " + e);
@@ -73,19 +75,16 @@ public class ImgurTest {
 
                     // Iterator<String> keys = data.get("data").keys();
 
-                    /*while(keys.hasNext()) {
-                        String key = keys.next();
-                        if (data.get(key) instanceof JSONObject) {
-                            BetterLoadingScreen.log.trace(((JSONObject) data.get(key)).toString(4));
-                        }
-                    }*/
+                    /*
+                     * while(keys.hasNext()) { String key = keys.next(); if (data.get(key) instanceof JSONObject) {
+                     * BetterLoadingScreen.log.trace(((JSONObject) data.get(key)).toString(4)); } }
+                     */
                     // final List<Photo> photos = new ArrayList<>();
 
-                    /*for (int i = 0; i < items.length(); i++)
-                    {
-                        JSONObject item = items.getJSONObject(i);
-                        BetterLoadingScreen.log.trace(item.toString(4));
-                    }*/
+                    /*
+                     * for (int i = 0; i < items.length(); i++) { JSONObject item = items.getJSONObject(i);
+                     * BetterLoadingScreen.log.trace(item.toString(4)); }
+                     */
 
                 } catch (JSONException e) {
                     e.printStackTrace();

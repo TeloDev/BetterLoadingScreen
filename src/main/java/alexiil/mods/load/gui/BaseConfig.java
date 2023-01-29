@@ -1,16 +1,19 @@
 package alexiil.mods.load.gui;
 
-import alexiil.mods.load.Translation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 
+import alexiil.mods.load.Translation;
+
 public class BaseConfig extends GuiScreen {
+
     private GitHubUserScrollingList contributors;
     private CommitScrollingList commits;
     private GuiButton helpClose;
@@ -71,7 +74,10 @@ public class BaseConfig extends GuiScreen {
         String text = Translation.translate("alexiillib.gui.connectExternallyDisabled");
         int textWidth = fontRendererObj.getStringWidth(text);
         drawHoveringText(
-                Collections.singletonList(text), (this.width - textWidth) / 2, this.height / 2, fontRendererObj);
+                Collections.singletonList(text),
+                (this.width - textWidth) / 2,
+                this.height / 2,
+                fontRendererObj);
 
         super.drawScreen(mouseX, mouseY, partialTicks);
 
@@ -94,30 +100,17 @@ public class BaseConfig extends GuiScreen {
     @Override
     public void initGui() {
         /*
-        String text = Translation.translate("alexiillib.config.button");
-        int length = fontRendererObj.getStringWidth(text) + 20;
-        totalLength = 10;
-        buttonList.add(new GuiButton(0, totalLength, 1, length, 20, text));
-        totalLength += length;
-
-        text = Translation.translate("alexiil.load.preview");
-        length = fontRendererObj.getStringWidth(text) + 20;
-        previewButton = new GuiButton(3, totalLength, 1, length, 20, text);
-        buttonList.add(previewButton);
-        totalLength += length;
-
-        text = Translation.translate("alexiillib.config.help");
-        length = fontRendererObj.getStringWidth(text) + 20;
-        buttonList.add(new GuiButton(1, totalLength, 1, length, 20, text));
-        xPosHelp = totalLength;
-        totalLength += length;
-
-        text = Translation.translate("alexiillib.config.closeHelp");
-        length = fontRendererObj.getStringWidth(text) + 20;
-        helpClose = new GuiButton(2, totalLength, 1, length, 20, text);
-        helpClose.visible = false;
-        buttonList.add(helpClose);
-        totalLength += length;*/
+         * String text = Translation.translate("alexiillib.config.button"); int length =
+         * fontRendererObj.getStringWidth(text) + 20; totalLength = 10; buttonList.add(new GuiButton(0, totalLength, 1,
+         * length, 20, text)); totalLength += length; text = Translation.translate("alexiil.load.preview"); length =
+         * fontRendererObj.getStringWidth(text) + 20; previewButton = new GuiButton(3, totalLength, 1, length, 20,
+         * text); buttonList.add(previewButton); totalLength += length; text =
+         * Translation.translate("alexiillib.config.help"); length = fontRendererObj.getStringWidth(text) + 20;
+         * buttonList.add(new GuiButton(1, totalLength, 1, length, 20, text)); xPosHelp = totalLength; totalLength +=
+         * length; text = Translation.translate("alexiillib.config.closeHelp"); length =
+         * fontRendererObj.getStringWidth(text) + 20; helpClose = new GuiButton(2, totalLength, 1, length, 20, text);
+         * helpClose.visible = false; buttonList.add(helpClose); totalLength += length;
+         */
         Minecraft.getMinecraft().displayGuiScreen(new ActualConfig(parent));
     }
 

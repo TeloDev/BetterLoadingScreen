@@ -1,6 +1,7 @@
 package alexiil.mods.load.json;
 
 public enum EPosition {
+
     TOP_LEFT(-1, -1),
     TOP_CENTER(0, -1),
     TOP_RIGHT(1, -1),

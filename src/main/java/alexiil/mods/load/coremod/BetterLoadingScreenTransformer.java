@@ -1,9 +1,7 @@
 package alexiil.mods.load.coremod;
 
-import alexiil.mods.load.BetterLoadingScreen;
-import alexiil.mods.load.ProgressDisplayer;
-import cpw.mods.fml.client.FMLClientHandler;
 import net.minecraft.launchwrapper.IClassTransformer;
+
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.GL11;
 import org.objectweb.asm.ClassReader;
@@ -17,7 +15,12 @@ import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 
+import alexiil.mods.load.BetterLoadingScreen;
+import alexiil.mods.load.ProgressDisplayer;
+import cpw.mods.fml.client.FMLClientHandler;
+
 public class BetterLoadingScreenTransformer implements IClassTransformer, Opcodes {
+
     @Override
     public byte[] transform(String name, String transformedName, byte[] basicClass) {
         try {
@@ -42,8 +45,13 @@ public class BetterLoadingScreenTransformer implements IClassTransformer, Opcode
             if (m.name.equals("preBeginGame")) {
                 m.instructions.clear();
                 m.instructions.add(new TypeInsnNode(NEW, "alexiil/mods/load/LiteLoaderProgress"));
-                m.instructions.add(new MethodInsnNode(
-                        INVOKESPECIAL, "alexiil/mods/load/LiteLoaderProgress", "<init>", "()V", false));
+                m.instructions.add(
+                        new MethodInsnNode(
+                                INVOKESPECIAL,
+                                "alexiil/mods/load/LiteLoaderProgress",
+                                "<init>",
+                                "()V",
+                                false));
                 m.instructions.add(new InsnNode(RETURN));
             }
         }
@@ -60,8 +68,13 @@ public class BetterLoadingScreenTransformer implements IClassTransformer, Opcode
 
         for (MethodNode m : classNode.methods) {
             if (m.name.equals("finish")) {
-                m.instructions.insert(new MethodInsnNode(
-                        INVOKESTATIC, Type.getInternalName(ProgressDisplayer.class), "close", "()V", false));
+                m.instructions.insert(
+                        new MethodInsnNode(
+                                INVOKESTATIC,
+                                Type.getInternalName(ProgressDisplayer.class),
+                                "close",
+                                "()V",
+                                false));
             }
         }
 
@@ -96,10 +109,12 @@ public class BetterLoadingScreenTransformer implements IClassTransformer, Opcode
                 }
             }
             for (int i = 0; i < m.instructions.size(); i++) {
-                /* LiteLoader disabling -NOTE TO ANYONE FROM LITELOADER OR ANYONE ELSE: I am disabling liteloader's
+                /*
+                 * LiteLoader disabling -NOTE TO ANYONE FROM LITELOADER OR ANYONE ELSE: I am disabling liteloader's
                  * overlay simply because otherwise it switches between liteloader's bar and mine. I can safely assume
                  * that people won't want this, and as my progress bar is the entire mod, they can disable this
-                 * behaviour by removing my mod (as all my mod does is just add a loading bar) */
+                 * behaviour by removing my mod (as all my mod does is just add a loading bar)
+                 */
                 AbstractInsnNode node = m.instructions.get(i);
                 if (node instanceof MethodInsnNode) {
                     MethodInsnNode method = (MethodInsnNode) node;
