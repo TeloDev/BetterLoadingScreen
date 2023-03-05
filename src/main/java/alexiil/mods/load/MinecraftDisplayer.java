@@ -800,6 +800,7 @@ public class MinecraftDisplayer implements IDisplayer {
                 }
             });
             splashRenderThread.setName("BLS Splash renderer");
+            splashRenderThread.setDaemon(true);
             splashRenderThread.setUncaughtExceptionHandler(
                     (Thread t, Throwable e) -> {
                         BetterLoadingScreen.log.error("BetterLodingScreen thread exception", e);

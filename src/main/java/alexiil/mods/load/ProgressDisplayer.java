@@ -225,7 +225,7 @@ public class ProgressDisplayer {
         displayer.close();
         displayer = null;
         if (isClient() && playSound) {
-            new Thread() {
+            final Thread dingThread = new Thread() {
 
                 @Override
                 @SideOnly(Side.CLIENT)
@@ -235,7 +235,9 @@ public class ProgressDisplayer {
                     } catch (InterruptedException e) {}
                     MinecraftDisplayerWrapper.playFinishedSound();
                 }
-            }.start();
+            };
+            dingThread.setDaemon(true);
+            dingThread.start();
         }
         if (forgeSplashWasTrue) {
             setForgeSplashEnabled(true);
