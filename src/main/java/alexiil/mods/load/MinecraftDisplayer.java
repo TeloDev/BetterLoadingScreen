@@ -1142,7 +1142,8 @@ public class MinecraftDisplayer implements IDisplayer {
         final Runtime rt = Runtime.getRuntime();
         final long maxMem = Long.max(1, rt.maxMemory() / (1024 * 1024));
         final long usedMem = Long.max(1, (rt.totalMemory() - rt.freeMemory()) / (1024 * 1024));
-        final String memText = String.format("Memory usage: %5d/%5d MB", usedMem, maxMem);
+        final String memText = String
+                .format(Translation.translate("betterloadingscreen.memory_usage"), usedMem, maxMem);
         drawImageRender(
                 new ImageRender(
                         progress,
