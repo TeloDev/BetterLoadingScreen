@@ -72,6 +72,7 @@ public class MinecraftDisplayer implements IDisplayer {
     private String progressAnimated = "betterloadingscreen:textures/mainProgressBar.png";
     private String title = "betterloadingscreen:textures/transparent.png";
     private String background = "betterloadingscreen:textures/backgrounds/01.png";
+    // Coordinate format: {texture x, y, w, h, on-screen x, y, w, h}
     private int[] titlePos = new int[] { 0, 0, 256, 256, 0, 50, 187, 145 };
     /*
      * private int[] GTprogressPos = new int[] {0, 0, 172, 12, 0, -83, 172, 6}; private int[] GTprogressPosAnimated =
@@ -81,6 +82,8 @@ public class MinecraftDisplayer implements IDisplayer {
     private int[] GTprogressPosAnimated = new int[] { 0, 24, 194, 24, 0, -83, 188, 12 };
     private int[] progressPos = new int[] { 0, 0, 194, 24, 0, -50, 194, 16 };
     private int[] progressPosAnimated = new int[] { 0, 24, 194, 24, 0, -50, 194, 16 };
+    private int[] memoryPos = new int[] { 0, 0, 194, 24, 0, 48, 194, 16 };
+    private int[] memoryPosAnimated = new int[] { 0, 24, 194, 24, 0, 48, 194, 16 };
     private int[] progressTextPos = new int[] { 0, -30 };
     private int[] progressPercentagePos = new int[] { 0, -40 };
     private int[] GTprogressTextPos = new int[] { 0, -65 };
@@ -543,6 +546,14 @@ public class MinecraftDisplayer implements IDisplayer {
                         "layout",
                         intArrayToString(progressPosAnimated),
                         comment11));
+        memoryPos = stringToIntArray(
+                cfg.getString("memoryBarPos", "layout", intArrayToString(memoryPos), "Memory bar position"));
+        memoryPosAnimated = stringToIntArray(
+                cfg.getString(
+                        "memoryBarPosAnimated",
+                        "layout",
+                        intArrayToString(memoryPosAnimated),
+                        "Memory bar animated position"));
         // Main Loading Bar Text
         String comment12 = "Main loading bar text position. The four values are for position.";
         progressTextPos = stringToIntArray(
@@ -1126,6 +1137,57 @@ public class MinecraftDisplayer implements IDisplayer {
                 }
             imageCounter++;
         }
+
+        // Draw memory usage bar
+        final Runtime rt = Runtime.getRuntime();
+        final long maxMem = Long.max(1, rt.maxMemory() / (1024 * 1024));
+        final long usedMem = Long.max(1, (rt.totalMemory() - rt.freeMemory()) / (1024 * 1024));
+        final String memText = String
+                .format(Translation.translate("betterloadingscreen.memory_usage"), usedMem, maxMem);
+        drawImageRender(
+                new ImageRender(
+                        progress,
+                        EPosition.TOP_CENTER,
+                        EType.STATIC,
+                        new Area(memoryPos[0], memoryPos[1], memoryPos[2], memoryPos[3]),
+                        new Area(memoryPos[4], memoryPos[5], memoryPos[6], memoryPos[7]),
+                        "ffffff",
+                        null,
+                        null),
+                null,
+                0.0);
+        drawImageRender(
+                new ImageRender(
+                        fontTexture,
+                        EPosition.TOP_CENTER,
+                        EType.DYNAMIC_TEXT_STATUS,
+                        new Area(memoryPos[0], memoryPos[1], memoryPos[2], memoryPos[3]),
+                        new Area(memoryPos[4], memoryPos[5] - 10, memoryPos[6], memoryPos[7]),
+                        "ffffff",
+                        null,
+                        null),
+                memText,
+                0.0);
+        drawImageRender(
+                new ImageRender(
+                        progress,
+                        EPosition.TOP_CENTER,
+                        EType.DYNAMIC_PERCENTAGE,
+                        new Area(
+                                memoryPosAnimated[0],
+                                memoryPosAnimated[1],
+                                memoryPosAnimated[2],
+                                memoryPosAnimated[3]),
+                        new Area(
+                                memoryPosAnimated[4],
+                                memoryPosAnimated[5],
+                                memoryPosAnimated[6],
+                                memoryPosAnimated[7]),
+                        "ffffff",
+                        null,
+                        null),
+                null,
+                (double) usedMem / (double) maxMem);
     }
 
     private FontRenderer fontRenderer(String fontTexture) {

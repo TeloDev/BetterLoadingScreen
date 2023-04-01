@@ -2,12 +2,9 @@ package alexiil.mods.load.coremod;
 
 import net.minecraft.launchwrapper.IClassTransformer;
 
-import org.lwjgl.LWJGLException;
-import org.lwjgl.opengl.GL11;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.InsnNode;
@@ -16,8 +13,6 @@ import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 
 import alexiil.mods.load.BetterLoadingScreen;
-import alexiil.mods.load.ProgressDisplayer;
-import cpw.mods.fml.client.FMLClientHandler;
 
 public class BetterLoadingScreenTransformer implements IClassTransformer, Opcodes {
 
@@ -69,12 +64,7 @@ public class BetterLoadingScreenTransformer implements IClassTransformer, Opcode
         for (MethodNode m : classNode.methods) {
             if (m.name.equals("finish")) {
                 m.instructions.insert(
-                        new MethodInsnNode(
-                                INVOKESTATIC,
-                                Type.getInternalName(ProgressDisplayer.class),
-                                "close",
-                                "()V",
-                                false));
+                        new MethodInsnNode(INVOKESTATIC, "alexiil/mods/load/ProgressDisplayer", "close", "()V", false));
             }
         }
 
@@ -92,12 +82,12 @@ public class BetterLoadingScreenTransformer implements IClassTransformer, Opcode
 
         for (MethodNode m : classNode.methods) {
             if (hasFoundGL11) break;
-            if (m.exceptions.size() == 1 && m.exceptions.get(0).equals(Type.getInternalName(LWJGLException.class))) {
+            if (m.exceptions.size() == 1 && m.exceptions.get(0).equals("org/lwjgl/LWJGLException")) {
                 for (int i = 0; i < m.instructions.size(); i++) {
                     AbstractInsnNode node = m.instructions.get(i);
                     if (node instanceof MethodInsnNode) {
                         MethodInsnNode method = (MethodInsnNode) node;
-                        if (method.owner.equals(Type.getInternalName(GL11.class)) && method.name.equals("glFlush")) {
+                        if (method.owner.equals("org/lwjgl/opengl/GL11") && method.name.equals("glFlush")) {
                             hasFoundGL11 = true;
                             // This method throws an LWJGL exception, and calls GL11.glFlush(). This must be
                             // Minecraft.loadScreen()!
@@ -128,11 +118,11 @@ public class BetterLoadingScreenTransformer implements IClassTransformer, Opcode
                 if (!hasFoundFMLClientHandler) {
                     if (node instanceof MethodInsnNode) {
                         MethodInsnNode method = (MethodInsnNode) node;
-                        if (method.owner.equals(Type.getInternalName(FMLClientHandler.class))
+                        if (method.owner.equals("cpw/mods/fml/client/FMLClientHandler")
                                 && method.name.equals("instance")) {
                             MethodInsnNode newOne = new MethodInsnNode(
                                     INVOKESTATIC,
-                                    Type.getInternalName(ProgressDisplayer.class),
+                                    "alexiil/mods/load/ProgressDisplayer",
                                     "minecraftDisplayFirstProgress",
                                     "()V",
                                     false);
