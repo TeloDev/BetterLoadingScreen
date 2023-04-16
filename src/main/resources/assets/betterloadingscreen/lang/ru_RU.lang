@@ -5,7 +5,7 @@ betterloadingscreen.state.initialization=Инициализация
 betterloadingscreen.state.post_initialization=Пост-Инициализация
 betterloadingscreen.state.completed=Завершено
 betterloadingscreen.state.reloading_resource_packs=Перезагружаем наборы ресурсов
-betterloadingscreen.memory_usage=Использование памяти: %5d/%5d Мб
+betterloadingscreen.memory_usage=Используемая память: %5d/%5d Мб
 betterloadingscreen.loading=Загружаем
 
 alexiillib.gui.contributors=Авторы
