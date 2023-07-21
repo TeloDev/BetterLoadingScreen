@@ -133,8 +133,9 @@ public class MinecraftDisplayer implements IDisplayer {
     private String loadingBarsColor = "fdf900";
     private float[] lbRGB = new float[] { 1, 1, 0 };
     private float loadingBarsAlpha = 0.5F;
-    private boolean useImgur = true;
-    public static String imgurGalleryLink = "https://imgur.com/gallery/Ks0TrYE";
+    private boolean useImgur = false;
+    private String imgurAppClientId = "";
+    private String imgurGalleryId = "";
 
     private boolean saltBGhasBeenRendered = false;
 
@@ -639,10 +640,15 @@ public class MinecraftDisplayer implements IDisplayer {
         salt = cfg.getBoolean("salt", "skepticism", salt, comment29);
 
         // imgur
-        String comment30 = "Set to true if you want to load images from an imgur gallery and use them as backgrounds. WIP, not working yet";
+        String comment30 = "Set to true if you want to load images from an imgur gallery and use them as backgrounds.";
         useImgur = cfg.getBoolean("useImgur", "imgur", useImgur, comment30);
-        String comment31 = "Link to the imgur gallery";
-        imgurGalleryLink = cfg.getString("imgurGalleryLink", "imgur", imgurGalleryLink, comment31);
+        imgurAppClientId = cfg.getString(
+                "imgurAppClientId",
+                "imgur",
+                imgurAppClientId,
+                "The client ID of your imgur application. Required to access the imgur api.");
+        String comment31 = "ID of the imgur gallery/album. For example: Ks0TrYE";
+        imgurGalleryId = cfg.getString("imgurGalleryId", "imgur", imgurGalleryId, comment31);
 
         // tips
         String comment32 = "Set to true if you want to display random tips. Tips are stored in a separate file";
