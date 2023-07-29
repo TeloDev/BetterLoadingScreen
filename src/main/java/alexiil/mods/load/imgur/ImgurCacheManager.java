@@ -24,6 +24,7 @@ import alexiil.mods.load.BetterLoadingScreen;
 
 public class ImgurCacheManager {
 
+    private static final boolean OFFLINE_MODE = Boolean.getBoolean("bls.offlineMode");
     private static final String IMGUR_CACHE_DIR = "bls-imgur-cache";
 
     private final Map<String, AbstractTexture> textureCache = new ConcurrentHashMap<>();
@@ -83,8 +84,8 @@ public class ImgurCacheManager {
         loadAnyImageFromDisk(cachedImageIDs, textureLocationConsumer);
 
         CompletableFuture.runAsync(() -> {
-            try (ImgurClient client = new ImgurClient(appClientId, requestTimeout)) {
-                client.fetchGalleryImageIDs(galleryId, true).stream().parallel().forEach(imageID -> {
+            try (ImgurClient client = OFFLINE_MODE ? null : new ImgurClient(appClientId, requestTimeout)) {
+                Consumer<String> imageHandler = imageID -> {
                     // This will leave behind cached images that are no longer in the gallery
                     synchronized (cachedImageIDs) {
                         cachedImageIDs.remove(imageID);
@@ -105,6 +106,8 @@ public class ImgurCacheManager {
                                     new BufferedInputStream(Files.newInputStream(imageFile), 1024 * 1024),
                                     false);
                         } else {
+                            if (OFFLINE_MODE) return;
+
                             readAndCacheImageFromStream(
                                     imageID,
                                     new ByteArrayInputStream(client.fetchImage(imageID)),
@@ -118,11 +121,19 @@ public class ImgurCacheManager {
                     synchronized (textureLocationConsumer) {
                         textureLocationConsumer.accept(new ResourceLocation(IMGUR_CACHE_DIR, imageID));
                     }
-                });
+                };
+
+                if (OFFLINE_MODE) {
+                    cachedImageIDs.stream().parallel().forEach(imageHandler);
+                } else {
+                    client.fetchGalleryImageIDs(galleryId, true).stream().parallel().forEach(imageHandler);
+                }
             } catch (Exception e) {
                 BetterLoadingScreen.log.error("Error while fetching imgur gallery", e);
             }
         }).thenRunAsync(() -> {
+            if (OFFLINE_MODE) return;
+
             // Delete cached images that are no longer in the gallery
             try {
                 for (String id : cachedImageIDs) {
