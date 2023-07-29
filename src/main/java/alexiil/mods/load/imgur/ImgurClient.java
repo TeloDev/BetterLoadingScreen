@@ -1,4 +1,4 @@
-package alexiil.mods.load.json;
+package alexiil.mods.load.imgur;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -20,9 +22,12 @@ public class ImgurClient implements AutoCloseable {
 
     private final CloseableHttpClient client;
 
-    public ImgurClient(String clientId) {
+    public ImgurClient(String clientId, int requestTimeout) {
         this.client = HttpClients.custom()
                 .setDefaultHeaders(Collections.singletonList(new BasicHeader("Authorization", "Client-ID " + clientId)))
+                .setDefaultRequestConfig(
+                        RequestConfig.custom().setConnectTimeout(requestTimeout)
+                                .setConnectionRequestTimeout(requestTimeout).setSocketTimeout(requestTimeout).build())
                 .build();
     }
 
@@ -30,7 +35,7 @@ public class ImgurClient implements AutoCloseable {
             throws IOException, JsonParseException {
         try (CloseableHttpResponse response = client
                 .execute(new HttpGet("https://api.imgur.com/3/album/" + galleryId))) {
-            if (response.getStatusLine().getStatusCode() != 200)
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK)
                 throw new IOException("Failed to fetch gallery image IDs. Server returned " + response.getStatusLine());
 
             String json = new String(IOUtils.toByteArray(response.getEntity().getContent()), StandardCharsets.UTF_8);
@@ -47,7 +52,7 @@ public class ImgurClient implements AutoCloseable {
     public byte[] fetchImage(String imageId) {
         // Note that Imgur allows requesting JPG images as PNGs, although the returned image will still be a JPG.
         try (CloseableHttpResponse response = client.execute(new HttpGet("https://i.imgur.com/" + imageId + ".png"))) {
-            if (response.getStatusLine().getStatusCode() != 200)
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK)
                 throw new IOException("Failed to fetch image. Server returned " + response.getStatusLine());
 
             return IOUtils.toByteArray(response.getEntity().getContent());

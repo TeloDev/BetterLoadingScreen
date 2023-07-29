@@ -29,6 +29,7 @@ import net.minecraft.client.audio.SoundEventAccessorComposite;
 import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.client.resources.LanguageManager;
@@ -41,7 +42,11 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.SharedDrawable;
 
 import alexiil.mods.load.ProgressDisplayer.IDisplayer;
-import alexiil.mods.load.json.*;
+import alexiil.mods.load.imgur.ImgurCacheManager;
+import alexiil.mods.load.json.Area;
+import alexiil.mods.load.json.EPosition;
+import alexiil.mods.load.json.EType;
+import alexiil.mods.load.json.ImageRender;
 import cpw.mods.fml.client.FMLFileResourcePack;
 import cpw.mods.fml.client.FMLFolderResourcePack;
 import cpw.mods.fml.client.SplashProgress;
@@ -134,8 +139,6 @@ public class MinecraftDisplayer implements IDisplayer {
     private float[] lbRGB = new float[] { 1, 1, 0 };
     private float loadingBarsAlpha = 0.5F;
     private boolean useImgur = false;
-    private String imgurAppClientId = "";
-    private String imgurGalleryId = "";
 
     private boolean saltBGhasBeenRendered = false;
 
@@ -149,6 +152,8 @@ public class MinecraftDisplayer implements IDisplayer {
     public static volatile long blendStartMillis = 0;
     private static String newBlendImage = "none";
     private static int nonStaticElementsToGo;
+
+    private ImgurCacheManager imgurCacheManager = null;
 
     private ScheduledExecutorService backgroundExec = null;
     private boolean scheduledTipExecSet = false;
@@ -642,13 +647,6 @@ public class MinecraftDisplayer implements IDisplayer {
         // imgur
         String comment30 = "Set to true if you want to load images from an imgur gallery and use them as backgrounds.";
         useImgur = cfg.getBoolean("useImgur", "imgur", useImgur, comment30);
-        imgurAppClientId = cfg.getString(
-                "imgurAppClientId",
-                "imgur",
-                imgurAppClientId,
-                "The client ID of your imgur application. Required to access the imgur api.");
-        String comment31 = "ID of the imgur gallery/album. For example: Ks0TrYE";
-        imgurGalleryId = cfg.getString("imgurGalleryId", "imgur", imgurGalleryId, comment31);
 
         // tips
         String comment32 = "Set to true if you want to display random tips. Tips are stored in a separate file";
@@ -732,6 +730,22 @@ public class MinecraftDisplayer implements IDisplayer {
                         }
                     }
                 }, changeFrequency, changeFrequency, TimeUnit.SECONDS);
+
+                if (useImgur) {
+                    imgurCacheManager = new ImgurCacheManager();
+                    imgurCacheManager.loadConfig(cfg);
+
+                    List<String> imgurBackgrounds = new ArrayList<>();
+                    imgurCacheManager.setupImgurGallery(res -> {
+                        // Override the default background with the first image we get, otherwise the image will only
+                        // be visible after the first blend occurs
+                        if (imgurBackgrounds.isEmpty()) background = res.toString();
+
+                        // Progressively add each image to the list of random backgrounds
+                        imgurBackgrounds.add(res.toString());
+                        randomBackgroundArray = imgurBackgrounds.toArray(new String[0]);
+                    });
+                }
             }
         }
 
@@ -1338,8 +1352,7 @@ public class MinecraftDisplayer implements IDisplayer {
                     }
 
                     GL11.glColor4f(render.getRed(), render.getGreen(), render.getBlue(), blendAlpha);
-                    ResourceLocation res = new ResourceLocation(render.resourceLocation);
-                    textureManager.bindTexture(res);
+                    bindTexture(render.resourceLocation);
                     drawRect(
                             startX,
                             startY,
@@ -1357,8 +1370,7 @@ public class MinecraftDisplayer implements IDisplayer {
                             new Area(0, 0, 256, 256),
                             new Area(0, 0, 0, 0));
                     GL11.glColor4f(render2.getRed(), render2.getGreen(), render2.getBlue(), 1.f - blendAlpha);
-                    ResourceLocation res2 = new ResourceLocation(render2.resourceLocation);
-                    textureManager.bindTexture(res2);
+                    bindTexture(render2.resourceLocation);
                     drawRect(
                             startX,
                             startY,
@@ -1371,8 +1383,7 @@ public class MinecraftDisplayer implements IDisplayer {
                     break;
                 } else {
                     GL11.glColor4f(render.getRed(), render.getGreen(), render.getBlue(), 1F);
-                    ResourceLocation res = new ResourceLocation(render.resourceLocation);
-                    textureManager.bindTexture(res);
+                    bindTexture(render.resourceLocation);
                     drawRect(
                             startX,
                             startY,
@@ -1390,6 +1401,23 @@ public class MinecraftDisplayer implements IDisplayer {
             case CLEAR_COLOUR: // Ignore this, as its set elsewhere
                 break;
         }
+    }
+
+    private void bindTexture(String resourceLocation) {
+        ResourceLocation res = new ResourceLocation(resourceLocation);
+
+        // We cannot go through the default texture loader, because it can't load from the file system
+        AbstractTexture texture = imgurCacheManager != null ? imgurCacheManager.getCachedTexture(res) : null;
+        if (texture != null) {
+            // Add the texture to TextureManager's cache to disable the loading logic in bindTexture
+            try {
+                textureManager.loadTexture(res, texture);
+            } catch (Exception e) {
+                BetterLoadingScreen.log.error("Failed to load imgur texture: " + res.getResourcePath(), e);
+            }
+        }
+
+        textureManager.bindTexture(res);
     }
 
     public void drawString(FontRenderer font, String text, int x, int y, int colour) {
@@ -1497,5 +1525,10 @@ public class MinecraftDisplayer implements IDisplayer {
             backgroundExec.shutdown();
         }
         getOnlyList().remove(myPack);
+
+        if (imgurCacheManager != null) {
+            imgurCacheManager.cleanUp();
+            imgurCacheManager = null;
+        }
     }
 }
