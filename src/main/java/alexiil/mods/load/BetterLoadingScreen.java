@@ -11,13 +11,12 @@ import net.minecraftforge.common.MinecraftForge;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.google.common.eventbus.EventBus;
+
 import alexiil.mods.load.ModLoadingListener.State;
 import alexiil.mods.load.git.Commit;
 import alexiil.mods.load.git.GitHubUser;
 import alexiil.mods.load.git.Release;
-
-import com.google.common.eventbus.EventBus;
-
 import cpw.mods.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.FMLModContainer;
