@@ -6,9 +6,9 @@ import java.util.Map;
 import alexiil.mods.load.ProgressDisplayer;
 import alexiil.mods.load.Translation;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
-import cpw.mods.fml.relauncher.IFMLLoadingPlugin.MCVersion;
 
-@MCVersion("1.7.10")
+@IFMLLoadingPlugin.MCVersion("1.7.10")
+@IFMLLoadingPlugin.TransformerExclusions({ "alexiil.mods.load.coremod" })
 public class LoadingScreenLoadPlugin implements IFMLLoadingPlugin {
 
     @Override
