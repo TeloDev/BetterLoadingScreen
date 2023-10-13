@@ -33,7 +33,7 @@ public class BetterLoadingScreenTransformer implements IClassTransformer, Opcode
     private byte[] transformObjectFactoryClient(byte[] before) {
         ClassNode classNode = new ClassNode();
         ClassReader reader = new ClassReader(before);
-        reader.accept(classNode, ClassReader.SKIP_DEBUG);
+        reader.accept(classNode, 0);
         for (MethodNode m : classNode.methods) {
             if (m.name.equals("preBeginGame")) {
                 m.instructions.clear();
@@ -56,7 +56,7 @@ public class BetterLoadingScreenTransformer implements IClassTransformer, Opcode
     private byte[] transformSplashProgress(byte[] before) {
         ClassNode classNode = new ClassNode();
         ClassReader reader = new ClassReader(before);
-        reader.accept(classNode, ClassReader.SKIP_DEBUG);
+        reader.accept(classNode, 0);
         for (MethodNode m : classNode.methods) {
             if (m.name.equals("finish")) {
                 m.instructions.insert(
@@ -71,7 +71,7 @@ public class BetterLoadingScreenTransformer implements IClassTransformer, Opcode
     private byte[] transformMinecraft(byte[] before) {
         ClassNode classNode = new ClassNode();
         ClassReader reader = new ClassReader(before);
-        reader.accept(classNode, ClassReader.SKIP_DEBUG);
+        reader.accept(classNode, 0);
         int transformations = 0;
 
         for (MethodNode m : classNode.methods) {
