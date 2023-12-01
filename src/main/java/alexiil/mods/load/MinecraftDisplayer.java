@@ -1510,7 +1510,7 @@ public class MinecraftDisplayer implements IDisplayer {
     @Override
     public void close() {
         if (splashRenderThread != null && splashRenderThread.isAlive()) {
-            BetterLoadingScreen.log.info("BLS Splash loading thread closing", new Throwable());
+            BetterLoadingScreen.log.info("BLS Splash loading thread closing");
             splashRenderKillSwitch = true;
             try {
                 loadingDrawable.releaseContext();
