@@ -1,11 +1,13 @@
 package alexiil.mods.load.gui;
 
+import net.minecraft.client.gui.GuiScreen;
+
 import alexiil.mods.load.MinecraftDisplayer;
 import alexiil.mods.load.ProgressDisplayer;
 import alexiil.mods.load.json.ImageRender;
-import net.minecraft.client.gui.GuiScreen;
 
 public class GuiPreview extends GuiScreen {
+
     private final BaseConfig parent;
     private MinecraftDisplayer displayer;
 

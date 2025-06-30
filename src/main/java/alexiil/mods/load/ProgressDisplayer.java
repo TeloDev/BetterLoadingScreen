@@ -1,12 +1,5 @@
 package alexiil.mods.load;
 
-import cpw.mods.fml.client.FMLFileResourcePack;
-import cpw.mods.fml.common.DummyModContainer;
-import cpw.mods.fml.common.ModContainer;
-import cpw.mods.fml.common.ModMetadata;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.io.FileReader;
@@ -15,16 +8,28 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Properties;
+
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.common.config.Configuration;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Level;
 
+import cpw.mods.fml.client.FMLFileResourcePack;
+import cpw.mods.fml.common.DummyModContainer;
+import cpw.mods.fml.common.ModContainer;
+import cpw.mods.fml.common.ModMetadata;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
 public class ProgressDisplayer {
+
     private static boolean hasTurnedSplashOff = false;
     private static boolean forgeSplashWasTrue = false;
 
     public interface IDisplayer {
+
         void open(Configuration cfg);
 
         void displayProgress(String text, float percent);
@@ -33,6 +38,7 @@ public class ProgressDisplayer {
     }
 
     public static class FrameDisplayer implements IDisplayer {
+
         private LoadingFrame frame = null;
 
         @Override
@@ -100,7 +106,7 @@ public class ProgressDisplayer {
             Object instance = resLoaderClass.newInstance();
             resLoaderClass.getField("INSTANCE").set(null, instance);
             Method m = resLoaderClass.getMethod("preInit", FMLPreInitializationEvent.class);
-            m.invoke(instance, new Object[] {null});
+            m.invoke(instance, new Object[] { null });
             BetterLoadingScreen.log.debug("Resource loader loaded early successfully :)");
         } catch (ClassNotFoundException ex) {
             BetterLoadingScreen.log.warn("Resource loader not loaded, not initialising early");
@@ -120,6 +126,7 @@ public class ProgressDisplayer {
         md.name = Lib.Mod.NAME;
         md.modId = Lib.Mod.ID;
         modContainer = new DummyModContainer(md) {
+
             @Override
             public Class<?> getCustomResourcePackClass() {
                 return FMLFileResourcePack.class;
@@ -140,26 +147,24 @@ public class ProgressDisplayer {
         // File fileNew = new File("./config/BetterLoadingScreen/config.cfg");
         File fileOld = new File("./config/Betterloadingscreen/betterloadingscreen.cfg");
 
-        /*if (fileOld.exists())
-            cfg = new Configuration(fileOld);
-        else
-            cfg = new Configuration(fileNew);*/
+        /*
+         * if (fileOld.exists()) cfg = new Configuration(fileOld); else cfg = new Configuration(fileNew);
+         */
         String n = System.lineSeparator();
         cfg = new Configuration(fileOld);
 
         boolean useMinecraft = isClient();
 
         if (useMinecraft) {
-            String comment =
-                    "Whether or not to use minecraft's display to show the progress. This looks better, but there is a possibility of not being ";
-            comment +=
-                    "compatible, so if you do have any strange crash reports or compatibility issues, try setting this to false"
-                            + n + "Note: IIRC, setting this to false makes the screen black";
+            String comment = "Whether or not to use minecraft's display to show the progress. This looks better, but there is a possibility of not being ";
+            comment += "compatible, so if you do have any strange crash reports or compatibility issues, try setting this to false"
+                    + n
+                    + "Note: IIRC, setting this to false makes the screen black";
             useMinecraft = cfg.getBoolean("useMinecraft", "general", true, comment);
         }
 
-        playSound =
-                cfg.getBoolean("playSound", "general", true, "Play a sound after minecraft has finished starting up");
+        playSound = cfg
+                .getBoolean("playSound", "general", true, "Play a sound after minecraft has finished starting up");
 
         if (useMinecraft) displayer = new MinecraftDisplayerWrapper();
         else if (!GraphicsEnvironment.isHeadless()) displayer = new FrameDisplayer();
@@ -187,8 +192,8 @@ public class ProgressDisplayer {
             w = new FileWriter(configFile);
             config.store(w, "Splash screen properties");
             hasTurnedOff = true;
-            BetterLoadingScreen.log.info(
-                    "Turned Forge splash screen " + (enabled ? "on" : "off") + " in splash.properties");
+            BetterLoadingScreen.log
+                    .info("Turned Forge splash screen " + (enabled ? "on" : "off") + " in splash.properties");
         } catch (IOException e) {
             BetterLoadingScreen.log.log(
                     Level.ERROR,
@@ -220,17 +225,19 @@ public class ProgressDisplayer {
         displayer.close();
         displayer = null;
         if (isClient() && playSound) {
-            new Thread() {
+            final Thread dingThread = new Thread() {
+
                 @Override
                 @SideOnly(Side.CLIENT)
                 public void run() {
                     try {
                         Thread.sleep(2000);
-                    } catch (InterruptedException e) {
-                    }
+                    } catch (InterruptedException e) {}
                     MinecraftDisplayerWrapper.playFinishedSound();
                 }
-            }.start();
+            };
+            dingThread.setDaemon(true);
+            dingThread.start();
         }
         if (forgeSplashWasTrue) {
             setForgeSplashEnabled(true);
@@ -259,6 +266,7 @@ public class ProgressDisplayer {
 
     public static void minecraftDisplayFirstProgress() throws IOException {
         displayProgress(
-                Translation.translate("betterloadingscreen.state.minecraft_init", "Minecraft Initializing"), 0F);
+                Translation.translate("betterloadingscreen.state.minecraft_init", "Minecraft Initializing"),
+                0F);
     }
 }

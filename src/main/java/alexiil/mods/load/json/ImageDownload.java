@@ -1,13 +1,16 @@
 package alexiil.mods.load.json;
 
-import alexiil.mods.load.BetterLoadingScreen;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+
 import javax.imageio.ImageIO;
 
+import alexiil.mods.load.BetterLoadingScreen;
+
 public class ImageDownload {
+
     public static String dlImage(String direct_url, String name) {
         BetterLoadingScreen.log.trace("Entered dlImage function, url is: " + direct_url);
         BufferedImage image = null;

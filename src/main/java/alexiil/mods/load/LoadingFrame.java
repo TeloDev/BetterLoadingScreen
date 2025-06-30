@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -14,7 +15,9 @@ import javax.swing.border.EmptyBorder;
 
 @SuppressWarnings("serial")
 public class LoadingFrame extends JFrame {
+
     private class ThreadIncrementer extends Thread {
+
         private final AtomicBoolean shouldIncrement = new AtomicBoolean(true);
         private final float from, to, diff;
         private final long time;
@@ -67,7 +70,9 @@ public class LoadingFrame extends JFrame {
         }
     }
 
-    /** Launch the application. */
+    /**
+     * Launch the application.
+     */
     public static LoadingFrame openWindow() {
         try {
             LoadingFrame frame = new LoadingFrame();
@@ -85,10 +90,15 @@ public class LoadingFrame extends JFrame {
         Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
         Rectangle bounds = frame.getBounds();
         return new Rectangle(
-                (size.width - bounds.width) / 2, (size.height - bounds.height) / 2, bounds.width, bounds.height);
+                (size.width - bounds.width) / 2,
+                (size.height - bounds.height) / 2,
+                bounds.width,
+                bounds.height);
     }
 
-    /** Create the frame. */
+    /**
+     * Create the frame.
+     */
     public LoadingFrame() {
         setTitle("Minecraft Loading");
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);

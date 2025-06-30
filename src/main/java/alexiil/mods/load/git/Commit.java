@@ -1,6 +1,7 @@
 package alexiil.mods.load.git;
 
 public class Commit {
+
     public final CommitInfo commit;
     public final String sha;
     public final String url;

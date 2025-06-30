@@ -1,6 +1,7 @@
 package alexiil.mods.load.git;
 
 public class GitHubUser {
+
     public final String login;
     public final int commits; // May use this, not sure
     public final String avatar_url; // Might use this in a new Gui

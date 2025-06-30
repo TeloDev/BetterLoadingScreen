@@ -1,6 +1,7 @@
 package alexiil.mods.load.git;
 
 public class Release {
+
     public final String name;
     public final Commit commit;
 

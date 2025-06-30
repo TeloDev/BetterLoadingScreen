@@ -1,14 +1,18 @@
 package alexiil.mods.load.gui;
 
-import cpw.mods.fml.client.GuiScrollingList;
 import java.util.ArrayList;
 import java.util.List;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.Tessellator;
 
+import cpw.mods.fml.client.GuiScrollingList;
+
 public abstract class TextGuiScrollingList extends GuiScrollingList {
+
     public static class LineInfo {
+
         public final String text;
         public final int colour;
         public final int xOffset;

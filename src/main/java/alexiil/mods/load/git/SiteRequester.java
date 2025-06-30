@@ -1,6 +1,5 @@
 package alexiil.mods.load.git;
 
-import com.google.gson.GsonBuilder;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,7 +16,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.gson.GsonBuilder;
+
 public class SiteRequester {
+
     private static final String LOGIN = "\"login\":\""; // "login":"
     private static final String AVATAR = "\"avatar_url\":\""; // "avatar_url":"
     private static final String COMMITS = "\"contributions\":"; // "contributions":
@@ -31,6 +33,7 @@ public class SiteRequester {
         if (response == null) return Collections.emptyList();
         List<GitHubUser> users = parseContributors(response);
         Collections.sort(users, new Comparator<GitHubUser>() {
+
             @Override
             public int compare(GitHubUser o1, GitHubUser o2) {
                 return o2.commits - o1.commits;

@@ -1,6 +1,5 @@
 // Add your dependencies here
 
 dependencies {
-    compile('com.squareup.okhttp3:okhttp:4.6.0')
-    compile('org.json:json:20211205')
+    compileOnly('com.mumfrey:liteloader:1.7.10_04:mcpnames')
 }

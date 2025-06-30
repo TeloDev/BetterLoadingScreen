@@ -1,6 +1,7 @@
 package alexiil.mods.load.json;
 
 public class Area {
+
     public final int x;
     public final int y;
     public final int width;

@@ -1,6 +1,10 @@
 package alexiil.mods.load;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -9,18 +13,23 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import net.minecraft.util.StatCollector;
+
 @Deprecated
 public class Translation {
-    private static Map<String, Translation> translators = new HashMap<String, Translation>();
+
+    private static final Map<String, Translation> translators = new HashMap<>();
     private static Translation currentTranslation = null;
-    private Map<String, String> translations = new HashMap<String, String>();
+    private final Map<String, String> translations = new HashMap<>();
 
     public static String translate(String toTranslate) {
         return translate(toTranslate, toTranslate);
     }
 
     public static String translate(String toTranslate, String failure) {
-        // return I18n.format(toTranslate);
+        if (StatCollector.canTranslate(toTranslate)) {
+            return StatCollector.translateToLocal(toTranslate);
+        }
         if (currentTranslation != null) return currentTranslation.translateInternal(toTranslate, failure);
         return failure;
     }
@@ -60,11 +69,9 @@ public class Translation {
             } catch (IOException e) {
                 BetterLoadingScreen.log.error("Could not open file");
             } finally {
-                if (modJar != null)
-                    try {
-                        modJar.close();
-                    } catch (IOException e) {
-                    }
+                if (modJar != null) try {
+                    modJar.close();
+                } catch (IOException e) {}
             }
         }
 
@@ -81,14 +88,12 @@ public class Translation {
                     language = parts[1];
                 }
             }
-        } catch (IOException ignored) {
-        } finally {
-            if (reader != null)
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        } catch (IOException ignored) {} finally {
+            if (reader != null) try {
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         if (translators.containsKey(language)) currentTranslation = translators.get(language);
         else if (translators.containsKey("en_US")) {
@@ -97,7 +102,9 @@ public class Translation {
         } else if (!translators.isEmpty()) {
             String name = translators.keySet().iterator().next();
             BetterLoadingScreen.log.warn(
-                    "Failed to load " + language + ", AND FAILED TO LOAD en_US! One available however is " + name
+                    "Failed to load " + language
+                            + ", AND FAILED TO LOAD en_US! One available however is "
+                            + name
                             + ", using that and keeping quiet...");
             currentTranslation = translators.values().iterator().next();
         } else {

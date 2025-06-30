@@ -1,14 +1,17 @@
 package alexiil.mods.load.gui;
 
-import alexiil.mods.load.BetterLoadingScreen;
-import alexiil.mods.load.git.Commit;
-import alexiil.mods.load.git.Release;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import net.minecraft.client.Minecraft;
 
+import alexiil.mods.load.BetterLoadingScreen;
+import alexiil.mods.load.git.Commit;
+import alexiil.mods.load.git.Release;
+
 public class CommitScrollingList extends TextGuiScrollingList {
+
     public final List<Commit> commitList = new ArrayList<Commit>();
     public final BaseConfig parent;
 
@@ -35,10 +38,8 @@ public class CommitScrollingList extends TextGuiScrollingList {
 
             String text = c.author.login + " " + date;
             LineInfo line0 = new LineInfo(text, thisOne ? 0xBFB23A : 0x00CAFF);
-            LineInfo line1 = release == null
-                    ? null
-                    : new LineInfo(
-                            release.name, 0x11FF44, parent.getFontRenderer().getStringWidth(text) + 10);
+            LineInfo line1 = release == null ? null
+                    : new LineInfo(release.name, 0x11FF44, parent.getFontRenderer().getStringWidth(text) + 10);
             addLine(line0, line1);
 
             String message = c.commit.message;

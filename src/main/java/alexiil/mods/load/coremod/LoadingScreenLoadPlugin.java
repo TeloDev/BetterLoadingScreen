@@ -1,25 +1,19 @@
 package alexiil.mods.load.coremod;
 
-import alexiil.mods.load.ProgressDisplayer;
-import alexiil.mods.load.Translation;
-import cpw.mods.fml.relauncher.IFMLLoadingPlugin.MCVersion;
-import cpw.mods.fml.relauncher.IFMLLoadingPlugin.SortingIndex;
-import cpw.mods.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions;
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.Map;
 
-@MCVersion("1.7.10")
-@TransformerExclusions({"alexiil.mods.load.coremod"})
-@SortingIndex(Integer.MAX_VALUE - 80)
-// A big number
-public class LoadingScreenLoadPlugin implements cpw.mods.fml.relauncher.IFMLLoadingPlugin {
+import alexiil.mods.load.ProgressDisplayer;
+import alexiil.mods.load.Translation;
+import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 
-    private static Method disableSplashMethodRef;
+@IFMLLoadingPlugin.MCVersion("1.7.10")
+@IFMLLoadingPlugin.TransformerExclusions({ "alexiil.mods.load.coremod" })
+public class LoadingScreenLoadPlugin implements IFMLLoadingPlugin {
 
     @Override
     public String[] getASMTransformerClass() {
-        return new String[] {"alexiil.mods.load.coremod.BetterLoadingScreenTransformer"};
+        return new String[] { BetterLoadingScreenTransformer.class.getName() };
     }
 
     @Override

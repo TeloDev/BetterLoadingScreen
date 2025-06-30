@@ -1,10 +1,22 @@
 package alexiil.mods.load;
 
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.Objects;
+
+import net.minecraftforge.client.event.GuiOpenEvent;
+import net.minecraftforge.common.MinecraftForge;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.google.common.eventbus.EventBus;
+
 import alexiil.mods.load.ModLoadingListener.State;
 import alexiil.mods.load.git.Commit;
 import alexiil.mods.load.git.GitHubUser;
 import alexiil.mods.load.git.Release;
-import com.google.common.eventbus.EventBus;
 import cpw.mods.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.FMLModContainer;
@@ -20,23 +32,16 @@ import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.List;
-import java.util.Objects;
-import net.minecraftforge.client.event.GuiOpenEvent;
-import net.minecraftforge.common.MinecraftForge;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 @Mod(
         modid = Lib.Mod.ID,
-        version = Lib.Mod.VERSION,
+        version = Tags.VERSION,
         name = Lib.Mod.NAME,
         acceptedMinecraftVersions = "[1.7.10]",
         guiFactory = "alexiil.mods.load.gui.ConfigGuiFactory",
         acceptableRemoteVersions = "*")
 public class BetterLoadingScreen {
+
     @Instance(Lib.Mod.ID)
     public static BetterLoadingScreen instance;
 
